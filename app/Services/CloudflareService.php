@@ -7,9 +7,9 @@ use RuntimeException;
 
 class CloudflareService
 {
-    private string $apiToken;
+    private ?string $apiToken;
 
-    private string $zoneId;
+    private ?string $zoneId;
 
     private ?string $accountId = null;
 

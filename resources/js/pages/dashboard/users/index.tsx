@@ -26,7 +26,7 @@ export default function UsersIndex() {
     try {
       const params = new URLSearchParams({ page: String(page) })
       if (filterStatus) params.set('status', filterStatus)
-      const res = await api.get<ApiResponse<PaginatedUsers>>(`/users?${params}`)
+      const res = await api.get<ApiResponse<PaginatedUsers>>(`/api/users?${params}`)
       if (res.success && res.data) {
         setUsers(res.data.data || [])
         setTotal(res.data.total)
@@ -48,7 +48,7 @@ export default function UsersIndex() {
 
   const changeRole = async (user: User, newRole: string) => {
     try {
-      await api.patch(`/users/${user.id}/role`, { role: newRole })
+      await api.patch(`/api/users/${user.id}/role`, { role: newRole })
       loadUsers()
     } catch {
     }
@@ -56,7 +56,7 @@ export default function UsersIndex() {
 
   const handleApprove = async (user: User) => {
     try {
-      await api.post(`/users/${user.id}/approve`)
+      await api.post(`/api/users/${user.id}/approve`)
       loadUsers()
     } catch {
     }
@@ -64,7 +64,7 @@ export default function UsersIndex() {
 
   const handleReject = async (user: User) => {
     try {
-      await api.post(`/users/${user.id}/reject`)
+      await api.post(`/api/users/${user.id}/reject`)
       loadUsers()
     } catch {
     }
@@ -72,7 +72,7 @@ export default function UsersIndex() {
 
   const handleDelete = async (id: number) => {
     try {
-      await api.delete(`/users/${id}`)
+      await api.delete(`/api/users/${id}`)
       setDeletingId(null)
       loadUsers()
     } catch {

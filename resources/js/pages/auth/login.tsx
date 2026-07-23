@@ -23,8 +23,7 @@ export default function Login({ status, canResetPassword }: Props) {
         <>
             <PasskeyVerify />
 
-            <Form
-            >
+            <Form {...store.form()}>
                 {({ processing, errors }) => (
                     <>
                         <div className="grid gap-6">

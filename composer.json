@@ -54,6 +54,7 @@
         ],
         "dev": [
             "Composer\\Config::disableProcessTimeout",
+            "fuser -k 8000/tcp 2>/dev/null; fuser -k 5173/tcp 2>/dev/null; echo 'Port 8000 dan 5173 dibersihkan'",
             "@php artisan dev"
         ],
         "lint": [

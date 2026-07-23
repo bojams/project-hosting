@@ -25,7 +25,6 @@ class Project extends Model implements HasMedia
         'status',
         'preview_path',
         'source_type',
-        'github_url',
         'framework',
         'framework_version',
         'build_command',

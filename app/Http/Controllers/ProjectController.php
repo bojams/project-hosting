@@ -10,7 +10,6 @@ use App\Services\CloudflareService;
 use App\Services\CloudflareTunnelService;
 use App\Services\DockerDeployer;
 use App\Services\FrameworkScanner;
-use App\Services\SourceManager;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -86,7 +85,7 @@ class ProjectController extends Controller
   <div class="container">
     <div class="logo">H</div>
     <h1>'.htmlspecialchars($project->name).'</h1>
-    <p>This project is ready for deployment. Upload your source code via ZIP, GitHub, or files to get started.</p>
+    <p>This project is ready for deployment. Upload your source code via ZIP or files to get started.</p>
     <div class="status">Waiting for source code</div>
     <div class="deploy-hint">Powered by Hideo Hosting</div>
   </div>
@@ -164,32 +163,6 @@ class ProjectController extends Controller
         ]);
     }
 
-    public function importGithub(Request $request, Project $project): JsonResponse
-    {
-        if ($project->user_id !== $request->user()->id) {
-            abort(404);
-        }
-
-        $validated = $request->validate([
-            'url' => 'required|string|max:500',
-        ]);
-
-        try {
-            app(SourceManager::class)->importFromGithub($project, $validated['url']);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Repository cloned successfully',
-                'data' => new ProjectResource($project),
-            ]);
-        } catch (\Throwable $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 422);
-        }
-    }
-
     public function importZip(Request $request, Project $project): JsonResponse
     {
         if ($project->user_id !== $request->user()->id) {
@@ -226,7 +199,7 @@ class ProjectController extends Controller
         if (! is_dir($sourcePath)) {
             return response()->json([
                 'success' => false,
-                'message' => 'No source imported yet. Import from GitHub or upload ZIP first.',
+                'message' => 'No source imported yet. Upload ZIP first.',
             ], 422);
         }
 
@@ -262,7 +235,7 @@ class ProjectController extends Controller
             'database_type' => 'nullable|in:mysql,sqlite,postgresql',
             'database_name' => 'nullable|string|max:100',
             'domain' => 'nullable|string|max:255',
-            'custom_domain' => 'nullable|string|max:255|unique:projects,custom_domain,'.$project->id,
+            'custom_domain' => 'nullable|string|max:255',
             'cloudflare_api_token' => 'nullable|string|max:255',
             'cloudflare_zone_id' => 'nullable|string|max:255',
             'cloudflare_account_id' => 'nullable|string|max:255',
@@ -530,7 +503,7 @@ class ProjectController extends Controller
         if (! is_dir($project->sourcePath()) && $project->getMedia('project_files')->isEmpty()) {
             return response()->json([
                 'success' => false,
-                'message' => 'No source files. Import from GitHub, upload ZIP, or upload files first.',
+                'message' => 'No source files. Upload ZIP or upload files first.',
             ], 422);
         }
 

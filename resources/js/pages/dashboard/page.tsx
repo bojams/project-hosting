@@ -40,7 +40,7 @@ export default function DashboardIndex() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await api.get<ApiResponse<{ projects: Project[]; total: number; published: number; draft: number }>>('/projects?limit=5')
+        const res = await api.get<ApiResponse<{ projects: Project[]; total: number; published: number; draft: number }>>('/api/projects?limit=5')
         if (res.success && res.data) {
           setProjects(res.data.projects || [])
           const d = res.data

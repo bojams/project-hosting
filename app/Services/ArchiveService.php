@@ -66,10 +66,15 @@ class ArchiveService
     private function uploadExtracted(Project $project, string $dir): array
     {
         $uploaded = [];
-        $files = $this->getAllFiles($dir);
+
+        $entries = array_diff(scandir($dir), ['.', '..']);
+        $singleRoot = count($entries) === 1 && is_dir($dir.'/'.reset($entries));
+        $baseDir = $singleRoot ? $dir.'/'.reset($entries) : $dir;
+
+        $files = $this->getAllFiles($baseDir);
 
         foreach ($files as $filePath) {
-            $relativePath = substr($filePath, strlen($dir) + 1);
+            $relativePath = substr($filePath, strlen($baseDir) + 1);
 
             try {
                 $media = $project->addMedia($filePath)

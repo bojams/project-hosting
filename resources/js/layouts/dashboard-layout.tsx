@@ -1,6 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
-import { LayoutDashboard, FolderKanban, Users, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, Users, UserRound, BookOpen, LogOut, Menu, X } from 'lucide-react';
 
 interface DashboardLayoutProps {
     children: React.ReactNode;
@@ -41,6 +41,22 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     <FolderKanban className="h-4 w-4" />
                     Projects
                 </Link>
+                <Link
+                    href="/dashboard/docs"
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-[var(--radius)] text-sm font-medium transition-all duration-200 text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)] hover:text-[var(--color-on-surface)]`}
+                >
+                    <BookOpen className="h-4 w-4" />
+                    Docs
+                </Link>
+                {user?.role === 'admin' && (
+                    <Link
+                        href="/dashboard/directory"
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-[var(--radius)] text-sm font-medium transition-all duration-200 text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)] hover:text-[var(--color-on-surface)]`}
+                    >
+                        <UserRound className="h-4 w-4" />
+                        Directory
+                    </Link>
+                )}
                 {user?.role === 'admin' && (
                     <Link
                         href="/dashboard/users"

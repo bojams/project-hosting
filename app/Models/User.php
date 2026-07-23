@@ -17,6 +17,16 @@ class User extends Authenticatable implements PasskeyUser
 {
     use HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
 
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
+    }
+
     protected function casts(): array
     {
         return [
