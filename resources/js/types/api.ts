@@ -16,7 +16,6 @@ export interface Project {
     status: string;
     preview_path: string | null;
     source_type: string;
-    github_url: string | null;
     framework: string | null;
     framework_version: string | null;
     build_command: string | null;

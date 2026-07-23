@@ -8,6 +8,7 @@ class FrameworkScanner
     {
         $info = [
             'framework' => 'static',
+            'language' => 'static',
             'framework_version' => null,
             'build_command' => null,
             'install_command' => null,
@@ -23,22 +24,24 @@ class FrameworkScanner
                 $require = $composer['require'] ?? [];
                 if (isset($require['laravel/framework'])) {
                     $info['framework'] = 'laravel';
+                    $info['language'] = 'php';
                     $info['framework_version'] = $require['laravel/framework'];
                     $info['build_command'] = 'composer install --no-dev --optimize-autoloader';
                     $info['install_command'] = 'composer install --no-dev --optimize-autoloader';
                     $info['start_command'] = 'php artisan serve --host=0.0.0.0 --port={port}';
                     $info['output_dir'] = 'public';
                     $info['internal_port'] = 8000;
-                    $info['docker_base_image'] = 'php:8.3-apache';
+                    $info['docker_base_image'] = 'php:8.4-apache';
 
                     return $info;
                 }
             }
             $info['framework'] = 'php';
+            $info['language'] = 'php';
             $info['build_command'] = 'composer install --no-dev --optimize-autoloader';
             $info['install_command'] = 'composer install --no-dev --optimize-autoloader';
             $info['internal_port'] = 8000;
-            $info['docker_base_image'] = 'php:8.3-apache';
+            $info['docker_base_image'] = 'php:8.4-apache';
 
             return $info;
         }
@@ -57,6 +60,7 @@ class FrameworkScanner
 
                 if (isset($deps['next'])) {
                     $info['framework'] = 'nextjs';
+                    $info['language'] = 'javascript';
                     $info['framework_version'] = $deps['next'];
                     $info['build_command'] = $hasBuild ? 'npm run build' : null;
                     $info['install_command'] = 'npm ci';
@@ -70,6 +74,7 @@ class FrameworkScanner
 
                 if (isset($deps['vue']) && isset($deps['nuxt'])) {
                     $info['framework'] = 'nuxt';
+                    $info['language'] = 'javascript';
                     $info['framework_version'] = $deps['nuxt'];
                     $info['build_command'] = $hasBuild ? 'npm run build' : null;
                     $info['install_command'] = 'npm ci';
@@ -83,6 +88,7 @@ class FrameworkScanner
 
                 if (isset($deps['react']) || isset($deps['react-dom'])) {
                     $info['framework'] = 'react';
+                    $info['language'] = 'javascript';
                     $info['build_command'] = 'npm run build';
                     $info['install_command'] = 'npm ci';
                     $info['output_dir'] = 'build';
@@ -98,6 +104,7 @@ class FrameworkScanner
 
                 if (isset($deps['vue'])) {
                     $info['framework'] = 'vue';
+                    $info['language'] = 'javascript';
                     $info['build_command'] = $hasBuild ? 'npm run build' : null;
                     $info['install_command'] = 'npm ci';
                     $info['output_dir'] = 'dist';
@@ -109,6 +116,7 @@ class FrameworkScanner
 
                 if (isset($deps['@angular/core'])) {
                     $info['framework'] = 'angular';
+                    $info['language'] = 'javascript';
                     $info['build_command'] = $hasBuild ? 'npm run build' : null;
                     $info['install_command'] = 'npm ci';
                     $info['output_dir'] = 'dist';
@@ -120,6 +128,7 @@ class FrameworkScanner
 
                 if (isset($deps['svelte'])) {
                     $info['framework'] = 'svelte';
+                    $info['language'] = 'javascript';
                     $info['build_command'] = $hasBuild ? 'npm run build' : null;
                     $info['install_command'] = 'npm ci';
                     $info['output_dir'] = 'dist';
@@ -131,6 +140,7 @@ class FrameworkScanner
 
                 if (isset($deps['express'])) {
                     $info['framework'] = 'express';
+                    $info['language'] = 'javascript';
                     $info['install_command'] = 'npm ci';
                     $info['start_command'] = 'node index.js';
                     $info['internal_port'] = 3000;
@@ -140,6 +150,7 @@ class FrameworkScanner
                 }
 
                 $info['framework'] = 'node';
+                $info['language'] = 'javascript';
                 $info['install_command'] = 'npm ci';
                 if ($hasBuild) {
                     $info['build_command'] = 'npm run build';
@@ -153,6 +164,7 @@ class FrameworkScanner
 
         if ($this->hasFile($sourcePath, 'requirements.txt')) {
             $info['framework'] = 'python';
+            $info['language'] = 'python';
             $info['install_command'] = 'pip install -r requirements.txt';
             $info['docker_base_image'] = 'python:3.12-slim';
             $info['internal_port'] = 8000;
@@ -173,6 +185,7 @@ class FrameworkScanner
 
         if ($this->hasFile($sourcePath, 'Gemfile')) {
             $info['framework'] = 'rails';
+            $info['language'] = 'ruby';
             $info['install_command'] = 'bundle install';
             $info['start_command'] = 'rails server -b 0.0.0.0 -p {port}';
             $info['internal_port'] = 3000;
@@ -183,6 +196,7 @@ class FrameworkScanner
 
         if ($this->hasFile($sourcePath, 'go.mod')) {
             $info['framework'] = 'go';
+            $info['language'] = 'go';
             $info['build_command'] = 'go build -o app .';
             $info['start_command'] = './app';
             $info['internal_port'] = 8080;
@@ -193,6 +207,7 @@ class FrameworkScanner
 
         if ($this->hasFile($sourcePath, 'Cargo.toml')) {
             $info['framework'] = 'rust';
+            $info['language'] = 'rust';
             $info['build_command'] = 'cargo build --release';
             $info['start_command'] = './target/release/app';
             $info['internal_port'] = 8080;
@@ -205,6 +220,7 @@ class FrameworkScanner
         foreach ($indexFiles as $f) {
             if ($this->hasFile($sourcePath, $f)) {
                 $info['framework'] = 'static';
+                $info['language'] = 'static';
                 $info['output_dir'] = '.';
                 $info['internal_port'] = 80;
                 $info['docker_base_image'] = 'nginx:alpine';

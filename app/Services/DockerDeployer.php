@@ -22,6 +22,8 @@ class DockerDeployer
             throw new RuntimeException('Project source not found. Import source first.');
         }
 
+        $this->syncMediaToSource($project, $sourcePath);
+
         $this->stopContainer($project);
 
         if ($project->port_auto || ! $project->port) {
@@ -124,9 +126,12 @@ class DockerDeployer
         if ($customDomains->isNotEmpty()) {
             $conf .= "# Custom domains\n";
             foreach ($customDomains as $p) {
+                $names = $p->domain
+                    ? ["{$p->domain}.{$p->custom_domain}"]
+                    : [$p->custom_domain];
                 $conf .= "server {\n";
                 $conf .= "    listen 80;\n";
-                $conf .= "    server_name {$p->custom_domain};\n\n";
+                $conf .= '    server_name '.implode(' ', $names).";\n\n";
                 $conf .= "    location / {\n";
                 $conf .= "        proxy_pass http://hideo_{$p->id};\n";
                 $conf .= "        proxy_set_header Host \$host;\n";
@@ -152,6 +157,24 @@ class DockerDeployer
             'container_id' => null,
             'container_status' => 'stopped',
         ]);
+    }
+
+    private function syncMediaToSource(Project $project, string $sourcePath): void
+    {
+        $mediaItems = $project->getMedia('project_files');
+        if ($mediaItems->isEmpty()) {
+            return;
+        }
+
+        foreach ($mediaItems as $media) {
+            $relativePath = $media->getCustomProperty('path', $media->file_name);
+            $destPath = "{$sourcePath}/{$relativePath}";
+            $destDir = dirname($destPath);
+            if (! is_dir($destDir)) {
+                mkdir($destDir, 0755, true);
+            }
+            copy($media->getPath(), $destPath);
+        }
     }
 
     public function getLogs(Project $project, int $lines = 50): string
@@ -226,17 +249,22 @@ class DockerDeployer
 
     private function phpDockerfile(string $base, ?string $install, ?string $start, ?string $output, int $port): string
     {
-        $df = "FROM {$base}\nWORKDIR /var/www/html\n";
+        $df = "FROM {$base}\n";
+        $df .= "RUN apt-get update && apt-get install -y unzip curl && \\\n";
+        $df .= "    curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer\n";
+        $df .= "WORKDIR /var/www/html\n";
         $df .= "COPY --chown=www-data:www-data . .\n";
 
         if ($install) {
             $df .= "RUN {$install}\n";
         }
 
-        $df .= "EXPOSE {$port}\n";
         if ($start) {
+            $start = str_replace('{port}', (string) $port, $start);
             $df .= "CMD [\"sh\", \"-c\", \"{$start}\"]\n";
         }
+
+        $df .= "EXPOSE {$port}\n";
 
         return $df;
     }

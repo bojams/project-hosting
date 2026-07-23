@@ -23,7 +23,7 @@ export default function ProjectsIndex() {
     try {
       const params = new URLSearchParams({ page: String(page), limit: String(limit) })
       if (filterStatus) params.set('status', filterStatus)
-      const res = await api.get<ApiResponse<Record<string, unknown>>>(`/projects?${params}`)
+      const res = await api.get<ApiResponse<Record<string, unknown>>>(`/api/projects?${params}`)
       if (res.success && res.data) {
         setProjects(res.data.projects as Project[] || [])
         setTotal(res.data.total as number)
@@ -43,7 +43,7 @@ export default function ProjectsIndex() {
     e.preventDefault()
     setCreating(true)
     try {
-      await api.post<ApiResponse<Project>>('/projects', { name, description: description || undefined })
+      await api.post<ApiResponse<Project>>('/api/projects', { name, description: description || undefined })
       setName('')
       setDescription('')
       setShowCreate(false)
@@ -56,7 +56,7 @@ export default function ProjectsIndex() {
 
   const handleDelete = async (id: number) => {
     try {
-      await api.delete<ApiResponse<void>>(`/projects/${id}`)
+      await api.delete<ApiResponse<void>>(`/api/projects/${id}`)
       setDeletingId(null)
       loadProjects()
     } catch {
@@ -173,7 +173,7 @@ export default function ProjectsIndex() {
                     <div className="flex items-center gap-2 mt-2 sm:mt-0 sm:ml-4">
                       {project.container_status === 'running' && (
                         <a
-                          href={project.custom_domain && project.domain_status === 'active'
+                          href={project.custom_domain
                             ? `https://${project.domain ? project.domain + '.' : ''}${project.custom_domain}`
                             : `/p/${project.slug}`
                           }

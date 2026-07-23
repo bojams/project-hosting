@@ -21,7 +21,6 @@ class ProjectResource extends JsonResource
             'status' => $this->status,
             'preview_path' => $this->preview_path,
             'source_type' => $this->source_type,
-            'github_url' => $this->github_url,
             'framework' => $this->framework,
             'framework_version' => $this->framework_version,
             'build_command' => $this->build_command,

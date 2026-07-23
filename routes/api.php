@@ -15,9 +15,9 @@ Route::prefix('api')->middleware('auth')->group(function () {
     Route::get('/projects/{project}/media', [MediaController::class, 'index']);
     Route::post('/projects/{project}/media', [MediaController::class, 'upload']);
     Route::post('/projects/{project}/media/bulk', [MediaController::class, 'uploadBulk']);
-    Route::delete('/projects/{project}/media/{media}', [MediaController::class, 'destroy']);
-    Route::post('/projects/{project}/media/batch-delete', [MediaController::class, 'destroyBatch']);
     Route::delete('/projects/{project}/media/all', [MediaController::class, 'destroyAll']);
+    Route::post('/projects/{project}/media/batch-delete', [MediaController::class, 'destroyBatch']);
+    Route::delete('/projects/{project}/media/{media}', [MediaController::class, 'destroy']);
     Route::patch('/projects/{project}/media/{media}', [MediaController::class, 'rename']);
     Route::get('/projects/{project}/media/{media}/content', [MediaController::class, 'content']);
     Route::put('/projects/{project}/media/{media}/content', [MediaController::class, 'updateContent']);
@@ -26,7 +26,6 @@ Route::prefix('api')->middleware('auth')->group(function () {
     Route::post('/projects/{project}/media/chunk/complete', [ChunkedUploadController::class, 'complete']);
     Route::post('/projects/{project}/media/chunk/cancel', [ChunkedUploadController::class, 'cancel']);
 
-    Route::post('/projects/{project}/source/github', [ProjectController::class, 'importGithub']);
     Route::post('/projects/{project}/source/zip', [ProjectController::class, 'importZip']);
     Route::post('/projects/{project}/scan', [ProjectController::class, 'scan']);
 
@@ -59,15 +58,32 @@ Route::get('/api/by-domain', function (Request $request) {
         return response()->json(['success' => false, 'message' => 'host required'], 400);
     }
 
-    $project = Project::where('custom_domain', $host)->whereNotNull('container_status')->first();
+    $parts = explode('.', $host);
+    $subdomain = $parts[0] ?? null;
 
-    if (! $project) {
-        $parts = explode('.', $host);
-        $subdomain = $parts[0] ?? null;
-        if ($subdomain && $subdomain !== 'www') {
-            $project = Project::where('slug', $subdomain)->orWhere('domain', $subdomain)->whereNotNull('container_status')->first();
+    if (count($parts) >= 2) {
+        $rootDomain = implode('.', array_slice($parts, 1));
+
+        $project = Project::where('custom_domain', $rootDomain)
+            ->where('domain', $subdomain)
+            ->whereNotNull('container_status')
+            ->first();
+
+        if ($project) {
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'id' => $project->id,
+                    'slug' => $project->slug,
+                    'name' => $project->name,
+                    'port' => $project->port,
+                    'container_status' => $project->container_status,
+                ],
+            ]);
         }
     }
+
+    $project = Project::where('slug', $subdomain)->whereNotNull('container_status')->first();
 
     if (! $project || ! $project->port) {
         return response()->json(['success' => false, 'message' => 'No project found for this domain'], 404);
