@@ -54,7 +54,7 @@ class DockerDeployer
         }
 
         $dbEnv = [];
-        if ($project->database_type && $project->database_type !== 'sqlite') {
+        if ($project->database_type) {
             $dbEnv = $this->setupDatabase($project);
         }
 
@@ -85,7 +85,7 @@ class DockerDeployer
             'container_id' => $containerId,
             'container_status' => 'running',
             'status' => 'published',
-            'preview_path' => "http://localhost:{$port}",
+            'preview_path' => (string) $port,
         ]);
 
         $this->generateNginxConfig($project);
@@ -144,6 +144,11 @@ class DockerDeployer
         }
 
         file_put_contents($configPath, $conf);
+
+        exec('nginx -t 2>&1', $testOutput, $testCode);
+        if ($testCode === 0) {
+            exec('nginx -s reload 2>&1');
+        }
     }
 
     public function stopContainer(Project $project): void
@@ -343,14 +348,14 @@ class DockerDeployer
     {
         $dbName = $project->database_name ?? ('hideo_'.$project->slug);
         $dbUser = 'hideo_user';
-        $dbPass = bin2hex(random_bytes(16));
+        $dbPass = hash_hmac('sha256', (string) $project->id, 'hideo-db-secret');
         $containerName = 'hideo-db-'.$project->slug;
 
         switch ($project->database_type) {
             case 'mysql':
                 $dbContainer = 'mysql:8.4';
                 $env = [
-                    'MYSQL_ROOT_PASSWORD' => bin2hex(random_bytes(16)),
+                    'MYSQL_ROOT_PASSWORD' => hash_hmac('sha256', (string) $project->id.'-root', 'hideo-db-secret'),
                     'MYSQL_DATABASE' => $dbName,
                     'MYSQL_USER' => $dbUser,
                     'MYSQL_PASSWORD' => $dbPass,

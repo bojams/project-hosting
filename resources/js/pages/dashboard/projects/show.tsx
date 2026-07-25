@@ -118,6 +118,7 @@ export default function ProjectShow() {
         setDatabaseName(res.data.database_name || '')
       }
     } catch {
+      toast.error('Failed to load project details')
     } finally {
       setLoading(false)
     }
@@ -176,7 +177,9 @@ export default function ProjectShow() {
       if (res.success && res.data) {
         setTunnelStatus(res.data)
       }
-    } catch {}
+    } catch {
+      toast.error('Failed to fetch tunnel status')
+    }
   }, [id])
 
   const handleSetupTunnel = async () => {
@@ -252,6 +255,7 @@ export default function ProjectShow() {
         if (res.data.internal_port) setPort(res.data.internal_port)
       }
     } catch {
+      toast.error('Failed to scan project')
     } finally {
       setScanning(false)
     }
@@ -286,7 +290,7 @@ export default function ProjectShow() {
     return new Promise((resolve, reject) => {
       const formData = new FormData()
       formData.append('file', file)
-      formData.append('relative_path', file.name)
+      formData.append('path', file.name)
 
       const xhr = new XMLHttpRequest()
       xhr.open('POST', `/api/projects/${id}/media`)
@@ -399,6 +403,7 @@ export default function ProjectShow() {
       setConfirmDeleteFile(null)
       loadProject()
     } catch {
+      toast.error('Failed to delete file')
     } finally {
       setDeletingFile(false)
     }
@@ -415,6 +420,7 @@ export default function ProjectShow() {
       setSelectedFiles([])
       loadProject()
     } catch {
+      toast.error('Failed to delete selected files')
     } finally {
       setDeletingBatch(false)
     }
@@ -427,6 +433,7 @@ export default function ProjectShow() {
       setConfirmDeleteAll(false)
       loadProject()
     } catch {
+      toast.error('Failed to delete files')
     } finally {
       setDeletingBatch(false)
     }
@@ -438,6 +445,7 @@ export default function ProjectShow() {
       setRenamingFile(null)
       loadProject()
     } catch {
+      toast.error('Failed to rename file')
     }
   }
 
@@ -446,6 +454,7 @@ export default function ProjectShow() {
       const res = await api.get<ApiResponse<{ logs: string }>>(`/api/projects/${id}/logs`)
       if (res.success && res.data) setLogs(res.data.logs)
     } catch {
+      toast.error('Failed to fetch logs')
     }
   }
 

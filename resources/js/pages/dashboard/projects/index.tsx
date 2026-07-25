@@ -1,5 +1,6 @@
 import { Head, router } from '@inertiajs/react'
 import { useEffect, useState, useCallback } from 'react'
+import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import { formatDate } from '@/lib/utils'
 import type { Project, ApiResponse } from '@/types/api'
@@ -29,6 +30,7 @@ export default function ProjectsIndex() {
         setTotal(res.data.total as number)
       }
     } catch {
+      toast.error('Failed to load projects')
     } finally {
       setLoading(false)
     }
@@ -49,6 +51,7 @@ export default function ProjectsIndex() {
       setShowCreate(false)
       loadProjects()
     } catch {
+      toast.error('Failed to create project')
     } finally {
       setCreating(false)
     }
@@ -60,6 +63,7 @@ export default function ProjectsIndex() {
       setDeletingId(null)
       loadProjects()
     } catch {
+      toast.error('Failed to delete project')
     }
   }
 

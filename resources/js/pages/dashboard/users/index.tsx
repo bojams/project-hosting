@@ -1,5 +1,6 @@
 import { Head, router, usePage } from '@inertiajs/react'
 import { useEffect, useState, useCallback } from 'react'
+import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import type { User, ApiResponse } from '@/types/api'
 import { Trash2, Check, X } from 'lucide-react'
@@ -32,6 +33,7 @@ export default function UsersIndex() {
         setTotal(res.data.total)
       }
     } catch {
+      toast.error('Failed to load users')
     } finally {
       setLoading(false)
     }
@@ -51,6 +53,7 @@ export default function UsersIndex() {
       await api.patch(`/api/users/${user.id}/role`, { role: newRole })
       loadUsers()
     } catch {
+      toast.error('Failed to change role')
     }
   }
 
@@ -59,6 +62,7 @@ export default function UsersIndex() {
       await api.post(`/api/users/${user.id}/approve`)
       loadUsers()
     } catch {
+      toast.error('Failed to approve user')
     }
   }
 
@@ -67,6 +71,7 @@ export default function UsersIndex() {
       await api.post(`/api/users/${user.id}/reject`)
       loadUsers()
     } catch {
+      toast.error('Failed to reject user')
     }
   }
 
@@ -76,6 +81,7 @@ export default function UsersIndex() {
       setDeletingId(null)
       loadUsers()
     } catch {
+      toast.error('Failed to delete user')
     }
   }
 

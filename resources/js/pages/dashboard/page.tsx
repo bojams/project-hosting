@@ -1,5 +1,6 @@
 import { Head, Link, router, usePage } from '@inertiajs/react'
 import { useCallback, useEffect, useState } from 'react'
+import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import type { Project, ApiResponse } from '@/types/api'
 import { FolderKanban, Globe, FileEdit, Clock, ExternalLink, Plus, ChevronLeft, ChevronRight } from 'lucide-react'
@@ -53,6 +54,7 @@ export default function DashboardIndex() {
         })
       }
     } catch {
+      toast.error('Failed to load projects')
     } finally {
       setLoading(false)
     }

@@ -16,13 +16,7 @@ class PreviewController extends Controller
             abort(404, 'Preview not available');
         }
 
-        $path = storage_path("app/public/{$project->preview_path}/index.html");
-
-        if (! file_exists($path)) {
-            abort(404);
-        }
-
-        return response()->file($path);
+        return redirect("http://localhost:{$project->preview_path}", 302);
     }
 
     public function serve(string $slug, string $path)
@@ -35,18 +29,10 @@ class PreviewController extends Controller
             abort(404);
         }
 
-        $fullPath = storage_path("app/public/{$project->preview_path}/{$path}");
-        $fullPath = realpath($fullPath);
-        $basePath = realpath(storage_path("app/public/{$project->preview_path}"));
+        $target = "/{$path}";
+        $query = http_build_query(request()->query());
+        $url = "http://localhost:{$project->preview_path}".($query ? "?{$query}" : '');
 
-        if (! $fullPath || ! $basePath || ! str_starts_with($fullPath, $basePath)) {
-            abort(403);
-        }
-
-        if (! file_exists($fullPath)) {
-            abort(404);
-        }
-
-        return response()->file($fullPath);
+        return redirect($url, 302);
     }
 }
