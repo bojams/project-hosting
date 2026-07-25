@@ -1,5 +1,5 @@
 import { Head, Link } from '@inertiajs/react'
-import { Upload, Eye, FolderKanban, Globe, Container, Cpu, Rocket, Settings, FileCode, CheckCircle } from 'lucide-react'
+import { Upload, Eye, FolderKanban, Globe, Container, Cpu, Rocket, Settings, FileCode, CheckCircle, Shield } from 'lucide-react'
 
 const features = [
   {
@@ -100,6 +100,21 @@ const setupSteps = [
       'Setelah "Running", proyek bisa diakses via URL preview',
       'Gunakan Cloudflare Tunnel untuk akses dari internet',
       'Atau hubungkan domain kustom Anda sendiri',
+    ],
+  },
+  {
+    num: 6,
+    icon: Shield,
+    title: 'Setup Cloudflare Tunnel (Opsional)',
+    desc: 'Ekspos proyek ke internet tanpa port forwarding. Siapkan Cloudflare Tunnel dan API credentials.',
+    details: [
+      'Buka detail proyek, masuk ke tab "Configuration"',
+      'Masukkan Cloudflare API Token (buat di Cloudflare Dashboard → My Profile → API Tokens)',
+      'Masukkan Zone ID (terlihat di halaman utama domain di Cloudflare, bagian kanan bawah)',
+      'Masukkan Account ID (terlihat di Cloudflare Dashboard → URL browser atau bagian kanan bawah)',
+      'Klik "Setup Tunnel" untuk membuat tunnel otomatis',
+      'Jalankan perintah tunnel yang diberikan di terminal server Anda',
+      'Proyek akan bisa diakses dari URL tunnel cloudflare Anda',
     ],
   },
 ]

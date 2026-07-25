@@ -6,29 +6,29 @@ export default function NotFound() {
 
   return (
     <>
-      <Head title="404 - Not Found" />
+      <Head title="404 - Halaman Tidak Ditemukan" />
       <div className="min-h-screen bg-[var(--color-bg-base)] flex items-center justify-center p-6">
         <div className="text-center max-w-md">
           <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center">
             <span className="text-[var(--color-on-primary)] font-bold text-2xl font-[var(--font-display)]">H</span>
           </div>
           <h1 className="text-6xl font-bold text-[var(--color-on-surface)] font-[var(--font-display)] mb-2">404</h1>
-          <p className="text-xl text-[var(--color-on-surface-variant)] mb-1">Page not found</p>
+          <p className="text-xl text-[var(--color-on-surface-variant)] mb-1">Halaman tidak ditemukan</p>
           <p className="text-sm text-[var(--color-outline)] mb-8">
-            The page you're looking for doesn't exist or has been moved.
+            Halaman yang Anda cari tidak tersedia atau sudah dipindahkan.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
               href={homeHref}
               className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium rounded-[var(--radius)] bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:shadow-[0_0_24px_rgb(102,255,153,0.25)] transition-all duration-200"
             >
-              {props.auth?.user ? 'Back to dashboard' : 'Back to home'}
+              {props.auth?.user ? 'Kembali ke dashboard' : 'Kembali ke beranda'}
             </Link>
             <Link
-              href="/dashboard/docs"
+              href="/#cara-kerja"
               className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium rounded-[var(--radius)] border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)] hover:text-[var(--color-on-surface)] transition-all duration-200"
             >
-              View documentation
+              Lihat panduan setup
             </Link>
           </div>
         </div>
