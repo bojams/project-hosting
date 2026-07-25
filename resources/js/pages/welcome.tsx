@@ -133,30 +133,30 @@ export default function Welcome() {
 
         <main>
           {/* Hero */}
-          <section className="relative py-16 sm:py-20 lg:py-28 overflow-hidden">
+          <section className="relative py-10 sm:py-14 lg:py-20 overflow-hidden">
             <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex flex-col lg:grid lg:grid-cols-2 items-center gap-8 lg:gap-10">
+              <div className="flex flex-col lg:grid lg:grid-cols-2 items-center gap-6 lg:gap-8">
                 <div className="text-center lg:text-left w-full">
-                  <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold tracking-tight text-[var(--color-on-surface)] font-[var(--font-display)] leading-tight">
+                  <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-extrabold tracking-tight text-[var(--color-on-surface)] font-[var(--font-display)] leading-tight">
                     Deploy proyek web Anda
                     <span className="text-[var(--color-primary)] block">dalam hitungan detik.</span>
                   </h1>
-                  <p className="mt-4 sm:mt-6 text-sm sm:text-base lg:text-lg text-[var(--color-on-surface-variant)] max-w-2xl mx-auto lg:mx-0">
+                  <p className="mt-3 sm:mt-4 text-sm sm:text-base text-[var(--color-on-surface-variant)] max-w-xl mx-auto lg:mx-0">
                     Unggah, preview, dan kelola proyek web Anda dengan mudah.
                     Deteksi framework otomatis, deploy dengan Docker, dan bagikan secara instan.
                   </p>
-                  <div className="mt-6 sm:mt-8 lg:mt-10 flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-3 sm:gap-4">
-                    <Link href="/register" className="inline-flex items-center justify-center px-6 py-3 text-sm sm:text-base font-semibold rounded-full bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:shadow-[0_0_20px_rgb(0,255,102,0.3)] w-full sm:w-auto">
+                  <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-3">
+                    <Link href="/register" className="inline-flex items-center justify-center px-5 py-2.5 text-sm font-semibold rounded-full bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:shadow-[0_0_20px_rgb(0,255,102,0.3)] w-full sm:w-auto">
                       Mulai deploy sekarang
                     </Link>
-                    <Link href="#cara-kerja" className="inline-flex items-center justify-center px-5 py-3 text-sm sm:text-base font-medium rounded-[var(--radius)] border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)] w-full sm:w-auto">
+                    <Link href="#cara-kerja" className="inline-flex items-center justify-center px-4 py-2.5 text-sm font-medium rounded-[var(--radius)] border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)] w-full sm:w-auto">
                       Pelajari selengkapnya
                     </Link>
                   </div>
                 </div>
                 <div className="hidden lg:flex items-center justify-center w-full">
-                  <div className="w-full max-w-md bg-[var(--color-surface-container)] rounded-xl border border-[rgba(255,255,255,0.06)] p-4 sm:p-6">
-                    <div className="space-y-3">
+                  <div className="w-full max-w-sm bg-[var(--color-surface-container)] rounded-xl border border-[rgba(255,255,255,0.06)] p-4">
+                    <div className="space-y-2">
                       {[
                         { badge: 'ZIP', color: 'primary', label: 'Deployed' },
                         { badge: 'GH', color: 'secondary', label: 'Live' },
