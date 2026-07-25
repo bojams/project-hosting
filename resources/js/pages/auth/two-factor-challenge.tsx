@@ -54,7 +54,7 @@ export default function TwoFactorChallenge() {
         <>
             <Head title="Two-factor authentication" />
 
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
                 <Form
                     {...store.form()}
                     className="space-y-4"

@@ -21,7 +21,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
                 </div>
             )}
 
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
                 <Form {...email.form()}>
                     {({ processing, errors }) => (
                         <>
@@ -39,7 +39,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
                                 <InputError message={errors.email} />
                             </div>
 
-                            <div className="my-6 flex items-center justify-start">
+                            <div className="my-4 sm:my-6 flex items-center justify-start">
                                 <Button
                                     className="w-full"
                                     disabled={processing}
