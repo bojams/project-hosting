@@ -73,81 +73,119 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     );
 
     return (
-        <div className="h-[100dvh] flex flex-col overflow-hidden bg-[var(--color-bg-base)]">
-            <div className="flex flex-1 min-h-0">
-                {sidebarOpen && (
-                    <div
-                        className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
-                        onClick={closeSidebar}
-                    />
-                )}
+        <div className="h-[100dvh] flex overflow-hidden bg-[var(--color-bg-base)]">
+            {/* Desktop sidebar — always visible, in document flow */}
+            <aside className="hidden lg:flex lg:w-64 lg:shrink-0 bg-[var(--color-surface-container)] border-r border-[rgba(255,255,255,0.06)] flex-col">
+                <div className="flex items-center gap-2 p-6">
+                    <Link href="/" className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-[var(--radius)] bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center">
+                            <span className="text-[var(--color-on-primary)] font-bold text-sm font-[var(--font-display)]">H</span>
+                        </div>
+                        <span className="text-lg font-bold text-[var(--color-on-surface)] font-[var(--font-display)]">Hideo Hosting</span>
+                    </Link>
+                </div>
 
-                <aside
-                    className={`fixed inset-y-0 left-0 z-50 w-64 max-w-[75vw] bg-[var(--color-surface-container)] backdrop-blur-xl border-r border-[rgba(255,255,255,0.06)] flex flex-col transition-transform duration-200 ease-in-out lg:relative lg:translate-x-0 lg:z-auto lg:max-w-none ${
-                        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-                    }`}
-                >
-                    <div className="flex items-center justify-between p-4 lg:p-6">
-                        <Link href="/" className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-[var(--radius)] bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center">
-                                <span className="text-[var(--color-on-primary)] font-bold text-sm font-[var(--font-display)]">H</span>
+                <nav className="flex-1 overflow-y-auto px-4 space-y-1">
+                    {navLinks}
+                </nav>
+
+                <div className="p-4 border-t border-[rgba(255,255,255,0.06)]">
+                    {user && (
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="w-8 h-8 shrink-0 rounded-full bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center text-[var(--color-on-primary)] text-sm font-semibold">
+                                {user.username[0].toUpperCase()}
                             </div>
-                            <span className="text-lg font-bold text-[var(--color-on-surface)] font-[var(--font-display)]">Hideo Hosting</span>
-                        </Link>
-                        <button onClick={closeSidebar} className="lg:hidden p-1 text-[var(--color-outline)] hover:text-[var(--color-on-surface)]">
-                            <X className="h-5 w-5" />
-                        </button>
-                    </div>
-
-                    <nav className="flex-1 overflow-y-auto px-3 lg:px-4 space-y-1">
-                        {navLinks}
-                    </nav>
-
-                    <div className="p-4 border-t border-[rgba(255,255,255,0.06)]">
-                        {user && (
-                            <div className="flex items-center gap-3 mb-3">
-                                <div className="w-8 h-8 shrink-0 rounded-full bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center text-[var(--color-on-primary)] text-sm font-semibold">
-                                    {user.username[0].toUpperCase()}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-[var(--color-on-surface)] truncate">{user.username}</p>
-                                    <p className="text-xs text-[var(--color-outline)] truncate">{user.email}</p>
-                                </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-[var(--color-on-surface)] truncate">{user.username}</p>
+                                <p className="text-xs text-[var(--color-outline)] truncate">{user.email}</p>
                             </div>
-                        )}
-                        <Link
-                            href="/logout"
-                            method="post"
-                            as="button"
-                            className="flex items-center gap-2 w-full px-3 py-2 text-sm font-medium text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)] hover:bg-[var(--color-surface-container-high)] rounded-[var(--radius)] transition-all"
-                        >
-                            <LogOut className="h-4 w-4 shrink-0" />
-                            Sign out
-                        </Link>
-                    </div>
-                </aside>
+                        </div>
+                    )}
+                    <Link
+                        href="/logout"
+                        method="post"
+                        as="button"
+                        className="flex items-center gap-2 w-full px-3 py-2 text-sm font-medium text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)] hover:bg-[var(--color-surface-container-high)] rounded-[var(--radius)] transition-all"
+                    >
+                        <LogOut className="h-4 w-4 shrink-0" />
+                        Sign out
+                    </Link>
+                </div>
+            </aside>
 
-                <main className="flex-1 min-w-0 min-h-0 flex flex-col overflow-hidden">
-                    <div className="shrink-0 flex items-center gap-3 px-4 py-3 border-b border-[rgba(255,255,255,0.06)] lg:hidden">
-                        <button
-                            onClick={() => setSidebarOpen(true)}
-                            className="p-1.5 text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)]"
-                            aria-label="Open sidebar"
-                        >
-                            <Menu className="h-5 w-5" />
-                        </button>
-                        <Link href="/" className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center">
-                                <span className="text-[var(--color-on-primary)] font-bold text-xs font-[var(--font-display)]">H</span>
+            {/* Mobile sidebar — overlay */}
+            {sidebarOpen && (
+                <div
+                    className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+                    onClick={closeSidebar}
+                />
+            )}
+            <aside
+                className={`fixed inset-y-0 left-0 z-50 w-64 max-w-[75vw] bg-[var(--color-surface-container)] backdrop-blur-xl border-r border-[rgba(255,255,255,0.06)] flex flex-col transition-transform duration-200 ease-in-out lg:hidden ${
+                    sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+                }`}
+            >
+                <div className="flex items-center justify-between p-4">
+                    <Link href="/" className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-[var(--radius)] bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center">
+                            <span className="text-[var(--color-on-primary)] font-bold text-sm font-[var(--font-display)]">H</span>
+                        </div>
+                        <span className="text-lg font-bold text-[var(--color-on-surface)] font-[var(--font-display)]">Hideo Hosting</span>
+                    </Link>
+                    <button onClick={closeSidebar} className="p-1 text-[var(--color-outline)] hover:text-[var(--color-on-surface)]">
+                        <X className="h-5 w-5" />
+                    </button>
+                </div>
+
+                <nav className="flex-1 overflow-y-auto px-3 space-y-1">
+                    {navLinks}
+                </nav>
+
+                <div className="p-4 border-t border-[rgba(255,255,255,0.06)]">
+                    {user && (
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="w-8 h-8 shrink-0 rounded-full bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center text-[var(--color-on-primary)] text-sm font-semibold">
+                                {user.username[0].toUpperCase()}
                             </div>
-                            <span className="text-lg font-bold font-[var(--font-display)]">Hideo Hosting</span>
-                        </Link>
-                    </div>
-                    <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 lg:p-8">
-                        {children}
-                    </div>
-                </main>
-            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-[var(--color-on-surface)] truncate">{user.username}</p>
+                                <p className="text-xs text-[var(--color-outline)] truncate">{user.email}</p>
+                            </div>
+                        </div>
+                    )}
+                    <Link
+                        href="/logout"
+                        method="post"
+                        as="button"
+                        className="flex items-center gap-2 w-full px-3 py-2 text-sm font-medium text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)] hover:bg-[var(--color-surface-container-high)] rounded-[var(--radius)] transition-all"
+                    >
+                        <LogOut className="h-4 w-4 shrink-0" />
+                        Sign out
+                    </Link>
+                </div>
+            </aside>
+
+            {/* Main content */}
+            <main className="flex-1 min-w-0 min-h-0 flex flex-col overflow-hidden">
+                <div className="shrink-0 flex items-center gap-3 px-4 py-3 border-b border-[rgba(255,255,255,0.06)] lg:hidden">
+                    <button
+                        onClick={() => setSidebarOpen(true)}
+                        className="p-1.5 text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)]"
+                        aria-label="Open sidebar"
+                    >
+                        <Menu className="h-5 w-5" />
+                    </button>
+                    <Link href="/" className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-md bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center">
+                            <span className="text-[var(--color-on-primary)] font-bold text-xs font-[var(--font-display)]">H</span>
+                        </div>
+                        <span className="text-lg font-bold font-[var(--font-display)]">Hideo Hosting</span>
+                    </Link>
+                </div>
+                <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 lg:p-8">
+                    {children}
+                </div>
+            </main>
         </div>
     );
 }
