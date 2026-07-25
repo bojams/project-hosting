@@ -198,10 +198,11 @@ class CloudflareService
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
         curl_close($ch);
 
         if (! $response) {
-            throw new RuntimeException('Cloudflare API request failed: '.curl_error($ch));
+            throw new RuntimeException('Cloudflare API request failed: '.$curlError);
         }
 
         $body = json_decode($response, true);

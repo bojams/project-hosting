@@ -18,7 +18,7 @@ function TimeElapsed({ since }: { since: string }) {
       const h = Math.floor((totalSec % 86400) / 3600)
       const m = Math.floor((totalSec % 3600) / 60)
       const s = totalSec % 60
-      setText(`${d}h ${h}j ${m}m ${s}d`)
+      setText(`${d}d ${h}h ${m}m ${s}s`)
     }
 
     update()
