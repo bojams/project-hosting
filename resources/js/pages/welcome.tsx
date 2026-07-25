@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react'
-import { Upload, Eye, FolderKanban, Globe, Container, Cpu, Rocket, Settings, FileCode, CheckCircle, Shield } from 'lucide-react'
+import { useState } from 'react'
+import { Upload, Eye, FolderKanban, Globe, Container, Cpu, Rocket, Settings, FileCode, Shield, ChevronDown } from 'lucide-react'
 
 const features = [
   {
@@ -41,10 +42,8 @@ const frameworks = [
 
 const setupSteps = [
   {
-    num: 1,
     icon: Settings,
     title: 'Buat Akun & Login',
-    desc: 'Daftar akun baru di Hideo Hosting. Setelah disetujui admin, Anda akan mendapatkan akses ke dashboard.',
     details: [
       'Klik "Get started" dan isi form registrasi',
       'Tunggu admin menyetujui akun Anda',
@@ -52,78 +51,65 @@ const setupSteps = [
     ],
   },
   {
-    num: 2,
     icon: FolderKanban,
     title: 'Buat Proyek Baru',
-    desc: 'Buat proyek baru dari dashboard untuk mulai mengelola source code Anda.',
     details: [
       'Buka halaman "Projects" di sidebar',
       'Klik tombol "+" untuk buat proyek baru',
       'Isi nama proyek dan deskripsi (opsional)',
-      'Proyek akan muncul di daftar projects Anda',
     ],
   },
   {
-    num: 3,
     icon: Upload,
     title: 'Upload Source Code',
-    desc: 'Unggah file proyek Anda ke server. Bisa langsung drag-drop atau upload ZIP.',
     details: [
       'Buka detail proyek dengan klik nama proyek',
       'Masuk ke tab "Files"',
       'Drag-drop file atau klik untuk pilih file',
-      'Untuk project besar, upload folder dalam format .zip',
-      'File akan diekstrak otomatis ke server',
+      'Untuk project besar, upload dalam format .zip',
     ],
   },
   {
-    num: 4,
     icon: FileCode,
     title: 'Konfigurasi Build',
-    desc: 'Atur konfigurasi build dan deploy sesuai kebutuhan framework Anda.',
     details: [
       'Buka tab "Configuration" di detail proyek',
       'Klik "Scan" untuk deteksi framework otomatis',
       'Atau isi manual: Build Command, Output Directory, Port',
-      'Pilih database jika diperlukan (MySQL/PostgreSQL/SQLite)',
-      'Klik "Save Configuration" untuk menyimpan',
+      'Pilih database jika diperlukan',
+      'Klik "Save Configuration"',
     ],
   },
   {
-    num: 5,
     icon: Rocket,
     title: 'Deploy & Akses',
-    desc: 'Deploy proyek Anda dan akses langsung dari browser.',
     details: [
       'Klik tombol "Deploy" di detail proyek',
       'Tunggu proses build dan deploy selesai (1-3 menit)',
       'Setelah "Running", proyek bisa diakses via URL preview',
-      'Gunakan Cloudflare Tunnel untuk akses dari internet',
-      'Atau hubungkan domain kustom Anda sendiri',
     ],
   },
   {
-    num: 6,
     icon: Shield,
-    title: 'Setup Cloudflare Tunnel (Opsional)',
-    desc: 'Ekspos proyek ke internet tanpa port forwarding. Siapkan Cloudflare Tunnel dan API credentials.',
+    title: 'Cloudflare Tunnel (Opsional)',
     details: [
       'Buka detail proyek, masuk ke tab "Configuration"',
-      'Masukkan Cloudflare API Token (buat di Cloudflare Dashboard → My Profile → API Tokens)',
-      'Masukkan Zone ID (terlihat di halaman utama domain di Cloudflare, bagian kanan bawah)',
-      'Masukkan Account ID (terlihat di Cloudflare Dashboard → URL browser atau bagian kanan bawah)',
-      'Klik "Setup Tunnel" untuk membuat tunnel otomatis',
-      'Jalankan perintah tunnel yang diberikan di terminal server Anda',
-      'Proyek akan bisa diakses dari URL tunnel cloudflare Anda',
+      'Masukkan Cloudflare API Token',
+      'Masukkan Zone ID (lihat di halaman domain di Cloudflare)',
+      'Masukkan Account ID (lihat di Cloudflare Dashboard)',
+      'Klik "Setup Tunnel" dan jalankan perintah di server',
     ],
   },
 ]
 
 export default function Welcome() {
+  const [openStep, setOpenStep] = useState<number | null>(null)
+
   return (
     <>
       <Head title="Hideo Hosting" />
       <div className="min-h-screen bg-[var(--color-bg-base)] overflow-y-auto">
+        {/* Header */}
         <header className="border-b border-[rgba(255,255,255,0.06)]">
           <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-14 sm:h-16">
@@ -134,16 +120,10 @@ export default function Welcome() {
                 <span className="text-base sm:text-xl font-bold text-[var(--color-on-surface)] font-[var(--font-display)]">Hideo Hosting</span>
               </Link>
               <div className="flex items-center gap-1.5 sm:gap-4">
-                <Link
-                  href="/login"
-                  className="text-sm font-medium text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)] px-2 sm:px-3 py-2"
-                >
+                <Link href="/login" className="text-sm font-medium text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)] px-2 sm:px-3 py-2">
                   Masuk
                 </Link>
-                <Link
-                  href="/register"
-                  className="inline-flex items-center px-3 sm:px-5 py-2 sm:py-2.5 text-sm font-medium rounded-[var(--radius)] bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:shadow-[0_0_20px_rgb(0,255,102,0.3)] transition-all"
-                >
+                <Link href="/register" className="inline-flex items-center px-3 sm:px-5 py-2 sm:py-2.5 text-sm font-medium rounded-[var(--radius)] bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:shadow-[0_0_20px_rgb(0,255,102,0.3)] transition-all">
                   Daftar
                 </Link>
               </div>
@@ -152,7 +132,7 @@ export default function Welcome() {
         </header>
 
         <main>
-          {/* Hero Section */}
+          {/* Hero */}
           <section className="relative py-16 sm:py-20 lg:py-28 overflow-hidden">
             <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex flex-col lg:grid lg:grid-cols-2 items-center gap-8 lg:gap-10">
@@ -163,57 +143,36 @@ export default function Welcome() {
                   </h1>
                   <p className="mt-4 sm:mt-6 text-sm sm:text-base lg:text-lg text-[var(--color-on-surface-variant)] max-w-2xl mx-auto lg:mx-0">
                     Unggah, preview, dan kelola proyek web Anda dengan mudah.
-                    Deteksi framework otomatis, deploy dengan Docker, dan bagikan secara instan — tanpa perlu konfigurasi rumit.
+                    Deteksi framework otomatis, deploy dengan Docker, dan bagikan secara instan.
                   </p>
                   <div className="mt-6 sm:mt-8 lg:mt-10 flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-3 sm:gap-4">
-                    <Link
-                      href="/register"
-                      className="inline-flex items-center justify-center px-6 py-3 text-sm sm:text-base font-semibold rounded-full bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:shadow-[0_0_20px_rgb(0,255,102,0.3)] w-full sm:w-auto"
-                    >
+                    <Link href="/register" className="inline-flex items-center justify-center px-6 py-3 text-sm sm:text-base font-semibold rounded-full bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:shadow-[0_0_20px_rgb(0,255,102,0.3)] w-full sm:w-auto">
                       Mulai deploy sekarang
                     </Link>
-                    <Link
-                      href="#cara-kerja"
-                      className="inline-flex items-center justify-center px-5 py-3 text-sm sm:text-base font-medium rounded-[var(--radius)] border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)] w-full sm:w-auto"
-                    >
+                    <Link href="#cara-kerja" className="inline-flex items-center justify-center px-5 py-3 text-sm sm:text-base font-medium rounded-[var(--radius)] border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)] w-full sm:w-auto">
                       Pelajari selengkapnya
                     </Link>
                   </div>
                 </div>
-
                 <div className="hidden lg:flex items-center justify-center w-full">
                   <div className="w-full max-w-md bg-[var(--color-surface-container)] rounded-xl border border-[rgba(255,255,255,0.06)] p-4 sm:p-6">
                     <div className="space-y-3">
-                      <div className="flex items-center gap-3 p-3 rounded-[var(--radius)] bg-[var(--color-surface-container-high)]">
-                        <div className="w-8 h-8 rounded-full bg-[var(--color-primary-dim)] flex items-center justify-center shrink-0">
-                          <span className="text-xs font-bold text-[var(--color-primary)]">ZIP</span>
+                      {[
+                        { badge: 'ZIP', color: 'primary', label: 'Deployed' },
+                        { badge: 'GH', color: 'secondary', label: 'Live' },
+                        { badge: 'N', color: 'primary', label: 'Ready' },
+                      ].map((item) => (
+                        <div key={item.badge} className="flex items-center gap-3 p-3 rounded-[var(--radius)] bg-[var(--color-surface-container-high)]">
+                          <div className={`w-8 h-8 rounded-full bg-[var(--color-${item.color}-dim)] flex items-center justify-center shrink-0`}>
+                            <span className={`text-xs font-bold text-[var(--color-${item.color})]`}>{item.badge}</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className={`h-2 w-24 rounded-full bg-[var(--color-${item.color})]/30`} />
+                            <div className="h-2 w-32 rounded-full bg-[var(--color-outline-variant)] mt-1.5" />
+                          </div>
+                          <span className="text-xs text-[var(--color-success)] shrink-0">{item.label}</span>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="h-2 w-24 rounded-full bg-[var(--color-primary)]/30" />
-                          <div className="h-2 w-32 rounded-full bg-[var(--color-outline-variant)] mt-1.5" />
-                        </div>
-                        <span className="text-xs text-[var(--color-success)] shrink-0">Deployed</span>
-                      </div>
-                      <div className="flex items-center gap-3 p-3 rounded-[var(--radius)] bg-[var(--color-surface-container-high)]">
-                        <div className="w-8 h-8 rounded-full bg-[var(--color-secondary-dim)] flex items-center justify-center shrink-0">
-                          <span className="text-xs font-bold text-[var(--color-secondary)]">GH</span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="h-2 w-32 rounded-full bg-[var(--color-secondary)]/30" />
-                          <div className="h-2 w-24 rounded-full bg-[var(--color-outline-variant)] mt-1.5" />
-                        </div>
-                        <span className="text-xs text-[var(--color-success)] shrink-0">Live</span>
-                      </div>
-                      <div className="flex items-center gap-3 p-3 rounded-[var(--radius)] bg-[var(--color-surface-container-high)]">
-                        <div className="w-8 h-8 rounded-full bg-[var(--color-primary-dim)] flex items-center justify-center shrink-0">
-                          <span className="text-xs font-bold text-[var(--color-primary)]">N</span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="h-2 w-40 rounded-full bg-[var(--color-primary)]/30" />
-                          <div className="h-2 w-28 rounded-full bg-[var(--color-outline-variant)] mt-1.5" />
-                        </div>
-                        <span className="text-xs text-[var(--color-success)] shrink-0">Ready</span>
-                      </div>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -221,7 +180,7 @@ export default function Welcome() {
             </div>
           </section>
 
-          {/* Features Section */}
+          {/* Features */}
           <section id="features" className="py-12 sm:py-16 lg:py-20 bg-[var(--color-surface-container)]">
             <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center mb-10 sm:mb-12 lg:mb-16">
@@ -246,7 +205,7 @@ export default function Welcome() {
             </div>
           </section>
 
-          {/* How It Works Section */}
+          {/* Setup Cards */}
           <section id="cara-kerja" className="py-12 sm:py-16 lg:py-20">
             <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center mb-10 sm:mb-12 lg:mb-16">
@@ -254,50 +213,64 @@ export default function Welcome() {
                   Cara Setup Project
                 </h2>
                 <p className="mt-3 text-sm sm:text-base text-[var(--color-on-surface-variant)] max-w-2xl mx-auto px-4">
-                  Ikuti langkah-langkah berikut untuk mulai deploy proyek Anda di Hideo Hosting.
+                  Klik setiap langkah untuk melihat panduan lengkapnya.
                 </p>
               </div>
 
-              <div className="max-w-3xl mx-auto space-y-6 sm:space-y-8">
-                {setupSteps.map((step) => (
-                  <div key={step.num} className="relative pl-12 sm:pl-16">
-                    {/* Step number circle */}
-                    <div className="absolute left-0 top-0 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[var(--color-primary-dim)] flex items-center justify-center shrink-0">
-                      <span className="text-sm sm:text-base font-bold text-[var(--color-primary)] font-[var(--font-display)]">{step.num}</span>
-                    </div>
+              <div className="max-w-2xl mx-auto space-y-3">
+                {setupSteps.map((step, i) => {
+                  const isOpen = openStep === i
+                  const StepIcon = step.icon
+                  return (
+                    <div
+                      key={i}
+                      className={`rounded-xl border transition-all duration-200 ${
+                        isOpen
+                          ? 'bg-[var(--color-surface-container-high)] border-[var(--color-primary)]/30 shadow-[0_0_20px_rgba(0,255,102,0.05)]'
+                          : 'bg-[var(--color-bg-card)] border-[rgba(255,255,255,0.06)] hover:border-[rgba(255,255,255,0.12)]'
+                      }`}
+                    >
+                      <button
+                        onClick={() => setOpenStep(isOpen ? null : i)}
+                        className="w-full flex items-center gap-3 p-4 sm:p-5 text-left"
+                      >
+                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                          isOpen ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-primary-dim)]'
+                        }`}>
+                          <StepIcon className={`h-4 w-4 ${isOpen ? 'text-[var(--color-on-primary)]' : 'text-[var(--color-primary)]'}`} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-sm sm:text-base font-semibold text-[var(--color-on-surface)] font-[var(--font-display)]">
+                            {step.title}
+                          </h3>
+                        </div>
+                        <ChevronDown className={`h-4 w-4 text-[var(--color-outline)] transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
+                      </button>
 
-                    {/* Connector line */}
-                    {step.num < setupSteps.length && (
-                      <div className="absolute left-[18px] sm:left-[20px] top-10 sm:top-11 w-px h-[calc(100%+24px)] bg-[var(--color-outline-variant)] opacity-30" />
-                    )}
-
-                    {/* Content */}
-                    <div className="pb-2">
-                      <div className="flex items-center gap-2.5 mb-2">
-                        <step.icon className="h-5 w-5 text-[var(--color-primary)] shrink-0" />
-                        <h3 className="text-base sm:text-lg font-semibold text-[var(--color-on-surface)] font-[var(--font-display)]">
-                          {step.title}
-                        </h3>
-                      </div>
-                      <p className="text-sm text-[var(--color-on-surface-variant)] mb-3 leading-relaxed">
-                        {step.desc}
-                      </p>
-                      <ul className="space-y-1.5">
-                        {step.details.map((detail, i) => (
-                          <li key={i} className="flex items-start gap-2 text-xs sm:text-sm text-[var(--color-on-surface-variant)]">
-                            <CheckCircle className="h-4 w-4 text-[var(--color-primary)] shrink-0 mt-0.5" />
-                            <span>{detail}</span>
-                          </li>
-                        ))}
-                      </ul>
+                      {isOpen && (
+                        <div className="px-4 sm:px-5 pb-4 sm:pb-5 pt-0">
+                          <div className="border-t border-[rgba(255,255,255,0.06)] pt-3">
+                            <ul className="space-y-2">
+                              {step.details.map((detail, j) => (
+                                <li key={j} className="flex items-start gap-2.5 text-sm text-[var(--color-on-surface-variant)]">
+                                  <span className="w-5 h-5 rounded-full bg-[var(--color-primary-dim)] flex items-center justify-center shrink-0 mt-0.5">
+                                    <span className="text-[10px] font-bold text-[var(--color-primary)]">{j + 1}</span>
+                                  </span>
+                                  <span>{detail}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           </section>
 
-          {/* Supported Frameworks */}
+          {/* Frameworks */}
           <section className="py-12 sm:py-16 lg:py-20 bg-[var(--color-surface-container)]">
             <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center mb-8 sm:mb-10 lg:mb-12">
@@ -310,10 +283,7 @@ export default function Welcome() {
               </div>
               <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
                 {frameworks.map((fw) => (
-                  <span
-                    key={fw}
-                    className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-mono rounded-[var(--radius)] bg-[var(--color-surface-container-high)] text-[var(--color-on-surface-variant)] border border-[rgba(255,255,255,0.06)]"
-                  >
+                  <span key={fw} className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-mono rounded-[var(--radius)] bg-[var(--color-surface-container-high)] text-[var(--color-on-surface-variant)] border border-[rgba(255,255,255,0.06)]">
                     {fw}
                   </span>
                 ))}
@@ -321,7 +291,7 @@ export default function Welcome() {
             </div>
           </section>
 
-          {/* CTA Section */}
+          {/* CTA */}
           <section className="py-12 sm:py-16 lg:py-20">
             <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
               <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[var(--color-on-surface)] font-[var(--font-display)]">
@@ -330,16 +300,14 @@ export default function Welcome() {
               <p className="mt-3 text-sm sm:text-base text-[var(--color-on-surface-variant)] max-w-lg mx-auto">
                 Buat akun gratis dan deploy proyek pertama Anda dalam hitungan menit.
               </p>
-              <Link
-                href="/register"
-                className="inline-flex items-center justify-center px-6 py-3 mt-6 sm:mt-8 text-sm sm:text-base font-semibold rounded-full bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:shadow-[0_0_20px_rgb(0,255,102,0.3)] w-full sm:w-auto"
-              >
+              <Link href="/register" className="inline-flex items-center justify-center px-6 py-3 mt-6 sm:mt-8 text-sm sm:text-base font-semibold rounded-full bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:shadow-[0_0_20px_rgb(0,255,102,0.3)] w-full sm:w-auto">
                 Daftar gratis
               </Link>
             </div>
           </section>
         </main>
 
+        {/* Footer */}
         <footer className="border-t border-[rgba(255,255,255,0.06)] py-6 sm:py-8">
           <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
             <div className="flex items-center gap-2 text-xs sm:text-sm text-[var(--color-outline)]">
