@@ -32,7 +32,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
     const { isCurrentOrParentUrl } = useCurrentUrl();
 
     return (
-        <div className="px-4 py-6">
+        <div className="px-4 sm:px-6 lg:px-8 py-6">
             <Heading
                 title="Settings"
                 description="Manage your profile and account settings"
@@ -41,7 +41,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
             <div className="flex flex-col lg:flex-row lg:space-x-12">
                 <aside className="w-full max-w-xl lg:w-48">
                     <nav
-                        className="flex flex-col space-y-1 space-x-0"
+                        className="flex flex-row lg:flex-col space-x-1 lg:space-x-0 lg:space-y-1 overflow-x-auto lg:overflow-visible"
                         aria-label="Settings"
                     >
                         {sidebarNavItems.map((item, index) => (

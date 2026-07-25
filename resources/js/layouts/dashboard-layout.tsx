@@ -103,7 +103,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             )}
 
             <aside
-                className={`fixed inset-y-0 left-0 z-50 w-64 bg-[var(--color-surface-container)] backdrop-blur-xl border-r border-[rgba(255,255,255,0.06)] flex flex-col transform transition-transform duration-200 ease-in-out lg:relative lg:translate-x-0 lg:z-auto ${
+                className={`fixed inset-y-0 left-0 z-50 w-64 max-w-[75vw] bg-[var(--color-surface-container)] backdrop-blur-xl border-r border-[rgba(255,255,255,0.06)] flex flex-col transform transition-transform duration-200 ease-in-out lg:relative lg:translate-x-0 lg:z-auto lg:max-w-none ${
                     sidebarOpen ? 'translate-x-0' : '-translate-x-full'
                 }`}
             >

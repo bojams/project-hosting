@@ -513,7 +513,7 @@ export default function ProjectShow() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-all duration-200 whitespace-nowrap ${
+                className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-3 text-xs sm:text-sm font-medium border-b-2 transition-all duration-200 whitespace-nowrap ${
                   activeTab === tab.id
                     ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
                     : 'border-transparent text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)] hover:border-[var(--color-outline)]'
@@ -530,8 +530,8 @@ export default function ProjectShow() {
           <div className={`${activeTab === 'config' || activeTab === 'source' || activeTab === 'deploy' || activeTab === 'logs' || activeTab === 'deployments' ? 'xl:col-span-2' : 'xl:col-span-2'}`}>
             {activeTab === 'files' && (
               <div className="bg-[var(--color-bg-card)] backdrop-blur-xl rounded-xl border border-[rgba(255,255,255,0.06)]">
-                <div className="px-6 py-4 border-b border-[rgba(255,255,255,0.06)] flex items-center justify-between">
-                  <h2 className="text-lg font-semibold font-[var(--font-display)]">Files</h2>
+                <div className="px-4 sm:px-6 py-4 border-b border-[rgba(255,255,255,0.06)] flex items-center justify-between">
+                  <h2 className="text-base sm:text-lg font-semibold font-[var(--font-display)]">Files</h2>
                   <div className="flex items-center gap-2">
                     {selectedFiles.length > 0 && (
                       <>
@@ -564,13 +564,13 @@ export default function ProjectShow() {
                     </label>
                   </div>
                 </div>
-                <div className="px-6 py-4">
+                <div className="px-4 sm:px-6 py-4">
                   {media.length === 0 ? (
                     <div
-                      className="border-2 border-dashed border-[var(--color-outline-variant)] rounded-xl p-12 text-center cursor-pointer hover:border-[var(--color-primary)]/50 transition-colors"
+                      className="border-2 border-dashed border-[var(--color-outline-variant)] rounded-xl p-6 sm:p-12 text-center cursor-pointer hover:border-[var(--color-primary)]/50 transition-colors"
                       onClick={() => fileInputRef.current?.click()}
                     >
-                      <Upload className="h-10 w-10 text-[var(--color-outline)] mx-auto mb-3" />
+                      <Upload className="h-8 w-8 sm:h-10 sm:w-10 text-[var(--color-outline)] mx-auto mb-3" />
                       <p className="text-sm text-[var(--color-on-surface-variant)]">Drop files here or click to upload</p>
                     </div>
                   ) : (
@@ -578,7 +578,7 @@ export default function ProjectShow() {
                       {media.map((file) => (
                         <div
                           key={file.id}
-                          className={`flex items-center gap-3 p-3 rounded-[var(--radius)] border border-[rgba(255,255,255,0.06)] hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-surface-container-high)] transition-all duration-200 group ${
+                          className={`flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-[var(--radius)] border border-[rgba(255,255,255,0.06)] hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-surface-container-high)] transition-all duration-200 group ${
                             selectedFiles.includes(file.id) ? 'border-[var(--color-primary)]/50 bg-[var(--color-primary-dim)]' : ''
                           }`}
                         >
@@ -616,7 +616,7 @@ export default function ProjectShow() {
                               {formatBytes(file.size)} &middot; {formatDate(file.created_at)}
                             </p>
                           </div>
-                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity max-sm:opacity-100">
                             <button
                               onClick={() => setRenamingFile({ id: file.id, name: file.name })}
                               className="p-1.5 text-[var(--color-outline)] hover:text-[var(--color-on-surface)] transition-colors"
@@ -650,14 +650,14 @@ export default function ProjectShow() {
             )}
 
             {activeTab === 'source' && (
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 <div className="bg-[var(--color-bg-card)] backdrop-blur-xl rounded-xl border border-[rgba(255,255,255,0.06)]">
-                  <div className="px-6 py-4 border-b border-[rgba(255,255,255,0.06)]">
-                    <h2 className="text-lg font-semibold font-[var(--font-display)]">Upload ZIP</h2>
+                  <div className="px-4 sm:px-6 py-4 border-b border-[rgba(255,255,255,0.06)]">
+                    <h2 className="text-base sm:text-lg font-semibold font-[var(--font-display)]">Upload ZIP</h2>
                   </div>
-                  <div className="px-6 py-4">
+                  <div className="px-4 sm:px-6 py-4">
                     <div
-                      className="border-2 border-dashed border-[var(--color-outline-variant)] rounded-xl p-8 text-center cursor-pointer hover:border-[var(--color-primary)]/50 transition-colors"
+                      className="border-2 border-dashed border-[var(--color-outline-variant)] rounded-xl p-6 sm:p-8 text-center cursor-pointer hover:border-[var(--color-primary)]/50 transition-colors"
                       onClick={() => fileInputRef.current?.click()}
                     >
                       <Archive className="h-8 w-8 text-[var(--color-outline)] mx-auto mb-2" />
@@ -674,10 +674,10 @@ export default function ProjectShow() {
                 </div>
 
                 <div className="bg-[var(--color-bg-card)] backdrop-blur-xl rounded-xl border border-[rgba(255,255,255,0.06)]">
-                  <div className="px-6 py-4 border-b border-[rgba(255,255,255,0.06)]">
-                    <h2 className="text-lg font-semibold font-[var(--font-display)]">Auto-detect Framework</h2>
+                  <div className="px-4 sm:px-6 py-4 border-b border-[rgba(255,255,255,0.06)]">
+                    <h2 className="text-base sm:text-lg font-semibold font-[var(--font-display)]">Auto-detect Framework</h2>
                   </div>
-                  <div className="px-6 py-4">
+                  <div className="px-4 sm:px-6 py-4">
                     <button
                       onClick={handleScan}
                       disabled={scanning}
@@ -701,10 +701,10 @@ export default function ProjectShow() {
 
             {activeTab === 'config' && (
               <div className="bg-[var(--color-bg-card)] backdrop-blur-xl rounded-xl border border-[rgba(255,255,255,0.06)]">
-                <div className="px-6 py-4 border-b border-[rgba(255,255,255,0.06)]">
-                  <h2 className="text-lg font-semibold font-[var(--font-display)]">Configuration</h2>
+                <div className="px-4 sm:px-6 py-4 border-b border-[rgba(255,255,255,0.06)]">
+                  <h2 className="text-base sm:text-lg font-semibold font-[var(--font-display)]">Configuration</h2>
                 </div>
-                <div className="px-6 py-4 space-y-6">
+                <div className="px-4 sm:px-6 py-4 space-y-6">
                   <div className="space-y-4">
                     <h3 className="text-sm font-semibold text-[var(--color-on-surface)] font-[var(--font-display)]">Domain</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -851,11 +851,11 @@ export default function ProjectShow() {
 
             {activeTab === 'deploy' && (
               <div className="bg-[var(--color-bg-card)] backdrop-blur-xl rounded-xl border border-[rgba(255,255,255,0.06)]">
-                <div className="px-6 py-4 border-b border-[rgba(255,255,255,0.06)]">
-                  <h2 className="text-lg font-semibold font-[var(--font-display)]">Deploy</h2>
+                <div className="px-4 sm:px-6 py-4 border-b border-[rgba(255,255,255,0.06)]">
+                  <h2 className="text-base sm:text-lg font-semibold font-[var(--font-display)]">Deploy</h2>
                 </div>
-                <div className="px-6 py-4 space-y-6">
-                  <div className="flex items-center justify-between p-4 bg-[var(--color-surface-container-high)] rounded-[var(--radius)]">
+                <div className="px-4 sm:px-6 py-4 space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-[var(--color-surface-container-high)] rounded-[var(--radius)]">
                     <div className="flex items-center gap-3">
                       <div className={`h-3 w-3 rounded-full ${project.container_status === 'running' ? 'bg-[var(--color-success)]' : 'bg-[var(--color-outline)]'}`} />
                       <div>
@@ -863,11 +863,11 @@ export default function ProjectShow() {
                         <p className="text-xs text-[var(--color-on-surface-variant)]">{project.container_status || 'stopped'}{project.container_id ? ` (${project.container_id.slice(0, 12)})` : ''}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
                       {project.container_status === 'running' ? (
                         <button
                           onClick={() => setConfirmStop(true)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-[var(--radius)] bg-[var(--color-error-container)] text-[var(--color-on-error-container)] hover:shadow-[0_0_20px_rgb(255,180,171,0.2)] transition-all"
+                          className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-[var(--radius)] bg-[var(--color-error-container)] text-[var(--color-on-error-container)] hover:shadow-[0_0_20px_rgb(255,180,171,0.2)] transition-all w-full sm:w-auto"
                         >
                           Stop Container
                         </button>
@@ -875,7 +875,7 @@ export default function ProjectShow() {
                         <button
                           onClick={handleDeploy}
                           disabled={deploying}
-                          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-[var(--radius)] bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:shadow-[0_0_20px_rgb(0,255,102,0.3)] disabled:opacity-50 transition-all"
+                          className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-[var(--radius)] bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:shadow-[0_0_20px_rgb(0,255,102,0.3)] disabled:opacity-50 transition-all w-full sm:w-auto"
                         >
                           {deploying ? <Loader2 className="h-4 w-4 animate-spin" /> : <Rocket className="h-4 w-4" />}
                           {deploying ? 'Deploying...' : 'Deploy'}
@@ -897,8 +897,8 @@ export default function ProjectShow() {
 
             {activeTab === 'logs' && (
               <div className="bg-[var(--color-bg-card)] backdrop-blur-xl rounded-xl border border-[rgba(255,255,255,0.06)]">
-                <div className="px-6 py-4 border-b border-[rgba(255,255,255,0.06)] flex items-center justify-between">
-                  <h2 className="text-lg font-semibold font-[var(--font-display)]">Container Logs</h2>
+                <div className="px-4 sm:px-6 py-4 border-b border-[rgba(255,255,255,0.06)] flex items-center justify-between">
+                  <h2 className="text-base sm:text-lg font-semibold font-[var(--font-display)]">Container Logs</h2>
                   <button
                     onClick={fetchLogs}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-[var(--radius)] border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)] transition-all"
@@ -906,8 +906,8 @@ export default function ProjectShow() {
                     Refresh
                   </button>
                 </div>
-                <div className="px-6 py-4">
-                  <pre className="bg-[var(--color-bg-base)] text-xs font-mono text-[var(--color-on-surface)] p-4 rounded-[var(--radius)] border border-[rgba(255,255,255,0.06)] overflow-auto max-h-96 whitespace-pre-wrap">
+                <div className="px-4 sm:px-6 py-4">
+                  <pre className="bg-[var(--color-bg-base)] text-xs font-mono text-[var(--color-on-surface)] p-3 sm:p-4 rounded-[var(--radius)] border border-[rgba(255,255,255,0.06)] overflow-auto max-h-72 sm:max-h-96 whitespace-pre-wrap">
                     {logs || 'No logs available. Deploy the project first.'}
                     <div ref={logsEndRef} />
                   </pre>
@@ -917,10 +917,10 @@ export default function ProjectShow() {
 
             {activeTab === 'deployments' && (
               <div className="bg-[var(--color-bg-card)] backdrop-blur-xl rounded-xl border border-[rgba(255,255,255,0.06)]">
-                <div className="px-6 py-4 border-b border-[rgba(255,255,255,0.06)]">
-                  <h2 className="text-lg font-semibold font-[var(--font-display)]">Deployment History</h2>
+                <div className="px-4 sm:px-6 py-4 border-b border-[rgba(255,255,255,0.06)]">
+                  <h2 className="text-base sm:text-lg font-semibold font-[var(--font-display)]">Deployment History</h2>
                 </div>
-                <div className="px-6 py-4">
+                <div className="px-4 sm:px-6 py-4">
                   {deployments.length === 0 ? (
                     <p className="text-sm text-[var(--color-on-surface-variant)] text-center py-8">No deployments yet.</p>
                   ) : (
@@ -928,10 +928,10 @@ export default function ProjectShow() {
                       {deployments.map((dep) => (
                         <div
                           key={dep.id}
-                          className="flex items-center justify-between p-4 rounded-[var(--radius)] border border-[rgba(255,255,255,0.06)] hover:bg-[var(--color-surface-container-high)] transition-all"
+                          className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 p-3 sm:p-4 rounded-[var(--radius)] border border-[rgba(255,255,255,0.06)] hover:bg-[var(--color-surface-container-high)] transition-all"
                         >
-                          <div>
-                            <p className="text-sm font-medium text-[var(--color-on-surface)]">
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-[var(--color-on-surface)] truncate">
                               v{dep.version} {dep.description && `- ${dep.description}`}
                             </p>
                             <p className="text-xs text-[var(--color-on-surface-variant)] mt-0.5">
@@ -983,11 +983,11 @@ export default function ProjectShow() {
             )}
 
             <div className="bg-[var(--color-bg-card)] backdrop-blur-xl rounded-xl border border-[rgba(255,255,255,0.06)]">
-              <div className="px-6 py-4 border-b border-[rgba(255,255,255,0.06)] flex items-center justify-between">
-                <h2 className="text-lg font-semibold font-[var(--font-display)]">Cloudflare Tunnel</h2>
-                <Globe className="h-5 w-5 text-[var(--color-outline)]" />
+              <div className="px-4 sm:px-6 py-4 border-b border-[rgba(255,255,255,0.06)] flex items-center justify-between">
+                <h2 className="text-base sm:text-lg font-semibold font-[var(--font-display)]">Cloudflare Tunnel</h2>
+                <Globe className="h-4 w-4 sm:h-5 sm:w-5 text-[var(--color-outline)]" />
               </div>
-              <div className="px-6 py-4">
+              <div className="px-4 sm:px-6 py-4">
                 {tunnelStatus?.tunnel_id ? (
                   <>
                     <div className="flex items-center gap-2 mb-3">
@@ -1018,11 +1018,11 @@ export default function ProjectShow() {
             </div>
 
             <div className="bg-[var(--color-bg-card)] backdrop-blur-xl rounded-xl border border-[rgba(255,255,255,0.06)]">
-              <div className="px-6 py-4 border-b border-[rgba(255,255,255,0.06)] flex items-center justify-between">
-                <h2 className="text-lg font-semibold font-[var(--font-display)]">Info</h2>
-                <FileEdit className="h-5 w-5 text-[var(--color-outline)]" />
+              <div className="px-4 sm:px-6 py-4 border-b border-[rgba(255,255,255,0.06)] flex items-center justify-between">
+                <h2 className="text-base sm:text-lg font-semibold font-[var(--font-display)]">Info</h2>
+                <FileEdit className="h-4 w-4 sm:h-5 sm:w-5 text-[var(--color-outline)]" />
               </div>
-              <div className="px-6 py-4">
+              <div className="px-4 sm:px-6 py-4">
                 <div className="space-y-2.5 sm:space-y-3 text-sm">
                   <div className="flex justify-between gap-2"><span className="text-[var(--color-on-surface-variant)] shrink-0">Status</span><span className="font-medium capitalize truncate text-right">{project.status}</span></div>
                   <div className="flex justify-between gap-2"><span className="text-[var(--color-on-surface-variant)] shrink-0">Source</span><span className="font-medium capitalize truncate text-right">{project.source_type}</span></div>

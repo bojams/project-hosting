@@ -89,14 +89,14 @@ export default function UsersIndex() {
     <>
       <Head title="Users" />
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-[var(--color-on-surface)] font-[var(--font-display)]">Users</h1>
             <p className="text-sm text-[var(--color-on-surface-variant)] mt-1">
               Manage registered users, approve requests, and assign roles
             </p>
           </div>
-          <div className="hidden sm:flex items-center gap-2 text-xs">
+          <div className="flex items-center gap-2 text-xs">
             <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-400 font-mono">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
               {users.filter(u => u.status === 'pending').length} pending
@@ -121,7 +121,7 @@ export default function UsersIndex() {
         </div>
 
         <div className="bg-[var(--color-bg-card)] backdrop-blur-xl rounded-xl border border-[rgba(255,255,255,0.06)]">
-          <div className="px-6 py-4">
+          <div className="px-4 sm:px-6 py-4">
             {loading ? (
               <div className="space-y-3">
                 {[1, 2, 3, 4].map((i) => (
@@ -137,10 +137,10 @@ export default function UsersIndex() {
                 {users.map((user) => (
                   <div
                     key={user.id}
-                    className="flex items-center justify-between p-4 rounded-[var(--radius)] border border-[rgba(255,255,255,0.06)] hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-surface-container-high)] transition-all duration-200"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 rounded-[var(--radius)] border border-[rgba(255,255,255,0.06)] hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-surface-container-high)] transition-all duration-200 gap-2 sm:gap-0"
                   >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center text-[var(--color-on-primary)] text-sm font-semibold shrink-0">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center text-[var(--color-on-primary)] text-xs sm:text-sm font-semibold shrink-0">
                         {user.username[0].toUpperCase()}
                       </div>
                       <div className="min-w-0">
@@ -148,7 +148,7 @@ export default function UsersIndex() {
                         <p className="text-xs text-[var(--color-on-surface-variant)] truncate">{user.email}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 flex-wrap">
                       <span
                         className={`px-2.5 py-1 text-xs font-mono uppercase tracking-wider font-medium rounded-full ${
                           user.status === 'pending'

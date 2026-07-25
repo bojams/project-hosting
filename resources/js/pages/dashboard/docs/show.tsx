@@ -116,7 +116,7 @@ export default function DocsShow({ slug, content }: Props) {
           Back to guides
         </Link>
 
-        <div className="bg-[var(--color-bg-card)] backdrop-blur-xl rounded-xl border border-[rgba(255,255,255,0.06)] p-6 sm:p-8">
+        <div className="bg-[var(--color-bg-card)] backdrop-blur-xl rounded-xl border border-[rgba(255,255,255,0.06)] p-4 sm:p-6 lg:p-8">
           <article
             className="prose-custom max-w-none"
             dangerouslySetInnerHTML={{ __html: renderMarkdown(content) }}

@@ -141,7 +141,7 @@ export default function ProjectsIndex() {
         </div>
 
         <div className="bg-[var(--color-bg-card)] backdrop-blur-xl rounded-xl border border-[rgba(255,255,255,0.06)]">
-          <div className="px-6 py-4">
+          <div className="px-4 sm:px-6 py-4">
             {loading ? (
               <div className="space-y-3">
                 {[1, 2, 3, 4].map((i) => (
@@ -196,7 +196,7 @@ export default function ProjectsIndex() {
                       </span>
                       <button
                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDeletingId(project.id) }}
-                        className="p-1.5 sm:opacity-0 sm:group-hover:opacity-100 text-[var(--color-outline)] hover:text-[var(--color-danger)] transition-all"
+                        className="p-1.5 sm:opacity-0 sm:group-hover:opacity-100 text-[var(--color-outline)] hover:text-[var(--color-danger)] transition-all max-sm:opacity-100"
                         aria-label="Delete project"
                       >
                         <Trash2 className="h-4 w-4" />

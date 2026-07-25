@@ -38,15 +38,15 @@ export default function DocsIndex({ guides }: Props) {
                 <h2 className="font-semibold text-sm text-[var(--color-on-surface)]">{guide.title}</h2>
               </div>
               {guide.excerpt && (
-                <p className="text-xs text-[var(--color-on-surface-variant)] ml-12">{guide.excerpt}</p>
+                <p className="text-xs text-[var(--color-on-surface-variant)] sm:ml-12">{guide.excerpt}</p>
               )}
             </Link>
           ))}
         </div>
 
-        <div className="bg-[var(--color-bg-card)] backdrop-blur-xl rounded-xl border border-[rgba(255,255,255,0.06)] p-6">
+        <div className="bg-[var(--color-bg-card)] backdrop-blur-xl rounded-xl border border-[rgba(255,255,255,0.06)] p-4 sm:p-6">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center shrink-0">
               <FileEdit className="h-4 w-4 text-amber-400" />
             </div>
             <h2 className="font-semibold text-sm text-[var(--color-on-surface)] font-[var(--font-display)]">Customize Documentation</h2>

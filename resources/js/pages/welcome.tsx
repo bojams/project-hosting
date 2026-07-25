@@ -45,24 +45,24 @@ export default function Welcome() {
       <Head title="Hideo Hosting" />
       <div className="min-h-screen bg-[var(--color-bg-base)]">
         <header className="border-b border-[rgba(255,255,255,0.06)]">
-          <div className="max-w-[1440px] mx-auto px-5 sm:px-8">
+          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-14 sm:h-16">
-              <Link href="/" className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-[var(--radius)] bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center">
-                  <span className="text-[var(--color-on-primary)] font-bold text-sm font-[var(--font-display)]">H</span>
+              <Link href="/" className="flex items-center gap-2 shrink-0">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-[var(--radius)] bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center">
+                  <span className="text-[var(--color-on-primary)] font-bold text-xs sm:text-sm font-[var(--font-display)]">H</span>
                 </div>
-                <span className="text-lg sm:text-xl font-bold text-[var(--color-on-surface)] font-[var(--font-display)]">Hideo Hosting</span>
+                <span className="text-base sm:text-xl font-bold text-[var(--color-on-surface)] font-[var(--font-display)] hidden xs:inline">Hideo Hosting</span>
               </Link>
-              <div className="flex items-center gap-2 sm:gap-4">
+              <div className="flex items-center gap-1.5 sm:gap-4">
                 <Link
                   href="/login"
-                  className="text-sm font-medium text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)] px-2"
+                  className="text-sm font-medium text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)] px-2 sm:px-3 py-2"
                 >
                   Sign in
                 </Link>
                 <Link
                   href="/register"
-                  className="inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 text-sm font-medium rounded-[var(--radius)] bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:shadow-[0_0_20px_rgb(0,255,102,0.3)]"
+                  className="inline-flex items-center px-3 sm:px-5 py-2 sm:py-2.5 text-sm font-medium rounded-[var(--radius)] bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:shadow-[0_0_20px_rgb(0,255,102,0.3)] transition-all"
                 >
                   Get started
                 </Link>
@@ -72,66 +72,66 @@ export default function Welcome() {
         </header>
 
         <main>
-          <section className="relative py-20 sm:py-28 overflow-hidden">
-            <div className="max-w-[1440px] mx-auto px-5 sm:px-8">
-              <div className="grid grid-cols-1 lg:grid-cols-2 items-center gap-10">
-                <div className="text-center lg:text-left">
-                  <h1 className="text-3xl sm:text-4xl lg:text-6xl font-extrabold tracking-tight text-[var(--color-on-surface)] font-[var(--font-display)]">
+          <section className="relative py-16 sm:py-20 lg:py-28 overflow-hidden">
+            <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex flex-col lg:grid lg:grid-cols-2 items-center gap-8 lg:gap-10">
+                <div className="text-center lg:text-left w-full">
+                  <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold tracking-tight text-[var(--color-on-surface)] font-[var(--font-display)] leading-tight">
                     Deploy your web projects
                     <span className="text-[var(--color-primary)] block">in seconds.</span>
                   </h1>
-                  <p className="mt-4 sm:mt-6 text-base sm:text-lg text-[var(--color-on-surface-variant)] max-w-2xl mx-auto lg:mx-0">
+                  <p className="mt-4 sm:mt-6 text-sm sm:text-base lg:text-lg text-[var(--color-on-surface-variant)] max-w-2xl mx-auto lg:mx-0">
                     Upload, preview, and manage your web projects with ease.
                     Auto-detect frameworks, deploy with Docker, and share instantly — no config needed.
                   </p>
-                  <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-3 sm:gap-4">
+                  <div className="mt-6 sm:mt-8 lg:mt-10 flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-3 sm:gap-4">
                     <Link
                       href="/register"
-                      className="inline-flex items-center px-6 py-3 text-base font-semibold rounded-full bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:shadow-[0_0_20px_rgb(0,255,102,0.3)]"
+                      className="inline-flex items-center justify-center px-6 py-3 text-sm sm:text-base font-semibold rounded-full bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:shadow-[0_0_20px_rgb(0,255,102,0.3)] w-full sm:w-auto"
                     >
                       Start deploying
                     </Link>
                     <Link
                       href="#features"
-                      className="inline-flex items-center px-5 py-3 text-base font-medium rounded-[var(--radius)] border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)]"
+                      className="inline-flex items-center justify-center px-5 py-3 text-sm sm:text-base font-medium rounded-[var(--radius)] border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)] w-full sm:w-auto"
                     >
                       Learn more
                     </Link>
                   </div>
                 </div>
 
-                <div className="hidden lg:flex items-center justify-center">
-                  <div className="w-full max-w-md bg-[var(--color-surface-container)] rounded-xl border border-[rgba(255,255,255,0.06)] p-6">
+                <div className="hidden lg:flex items-center justify-center w-full">
+                  <div className="w-full max-w-md bg-[var(--color-surface-container)] rounded-xl border border-[rgba(255,255,255,0.06)] p-4 sm:p-6">
                     <div className="space-y-3">
                       <div className="flex items-center gap-3 p-3 rounded-[var(--radius)] bg-[var(--color-surface-container-high)]">
-                        <div className="w-8 h-8 rounded-full bg-[var(--color-primary-dim)] flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-full bg-[var(--color-primary-dim)] flex items-center justify-center shrink-0">
                           <span className="text-xs font-bold text-[var(--color-primary)]">ZIP</span>
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="h-2 w-24 rounded-full bg-[var(--color-primary)]/30" />
                           <div className="h-2 w-32 rounded-full bg-[var(--color-outline-variant)] mt-1.5" />
                         </div>
-                        <span className="text-xs text-[var(--color-success)]">Deployed</span>
+                        <span className="text-xs text-[var(--color-success)] shrink-0">Deployed</span>
                       </div>
                       <div className="flex items-center gap-3 p-3 rounded-[var(--radius)] bg-[var(--color-surface-container-high)]">
-                        <div className="w-8 h-8 rounded-full bg-[var(--color-secondary-dim)] flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-full bg-[var(--color-secondary-dim)] flex items-center justify-center shrink-0">
                           <span className="text-xs font-bold text-[var(--color-secondary)]">GH</span>
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="h-2 w-32 rounded-full bg-[var(--color-secondary)]/30" />
                           <div className="h-2 w-24 rounded-full bg-[var(--color-outline-variant)] mt-1.5" />
                         </div>
-                        <span className="text-xs text-[var(--color-success)]">Live</span>
+                        <span className="text-xs text-[var(--color-success)] shrink-0">Live</span>
                       </div>
                       <div className="flex items-center gap-3 p-3 rounded-[var(--radius)] bg-[var(--color-surface-container-high)]">
-                        <div className="w-8 h-8 rounded-full bg-[var(--color-primary-dim)] flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-full bg-[var(--color-primary-dim)] flex items-center justify-center shrink-0">
                           <span className="text-xs font-bold text-[var(--color-primary)]">N</span>
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="h-2 w-40 rounded-full bg-[var(--color-primary)]/30" />
                           <div className="h-2 w-28 rounded-full bg-[var(--color-outline-variant)] mt-1.5" />
                         </div>
-                        <span className="text-xs text-[var(--color-success)]">Ready</span>
+                        <span className="text-xs text-[var(--color-success)] shrink-0">Ready</span>
                       </div>
                     </div>
                   </div>
@@ -140,45 +140,45 @@ export default function Welcome() {
             </div>
           </section>
 
-          <section id="features" className="py-16 sm:py-20 bg-[var(--color-surface-container)]">
-            <div className="max-w-[1440px] mx-auto px-5 sm:px-8">
-              <div className="text-center mb-12 sm:mb-16">
-                <h2 className="text-2xl sm:text-3xl font-bold text-[var(--color-on-surface)] font-[var(--font-display)]">
+          <section id="features" className="py-12 sm:py-16 lg:py-20 bg-[var(--color-surface-container)]">
+            <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center mb-10 sm:mb-12 lg:mb-16">
+                <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[var(--color-on-surface)] font-[var(--font-display)]">
                   Everything you need to host
                 </h2>
-                <p className="mt-3 text-sm sm:text-base text-[var(--color-on-surface-variant)] max-w-2xl mx-auto">
+                <p className="mt-3 text-sm sm:text-base text-[var(--color-on-surface-variant)] max-w-2xl mx-auto px-4">
                   From upload to live — all the tools to manage your web projects in one place.
                 </p>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
                 {features.map((f) => (
-                  <div key={f.title} className="p-6 rounded-xl bg-[var(--color-bg-card)] border border-[rgba(255,255,255,0.06)] hover:border-[var(--color-primary)]/30 transition-all duration-300">
-                    <div className="w-10 h-10 rounded-lg bg-[var(--color-primary-dim)] flex items-center justify-center mb-4">
-                      <f.icon className="h-5 w-5 text-[var(--color-primary)]" />
+                  <div key={f.title} className="p-5 sm:p-6 rounded-xl bg-[var(--color-bg-card)] border border-[rgba(255,255,255,0.06)] hover:border-[var(--color-primary)]/30 transition-all duration-300">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-[var(--color-primary-dim)] flex items-center justify-center mb-3 sm:mb-4">
+                      <f.icon className="h-4 w-4 sm:h-5 sm:w-5 text-[var(--color-primary)]" />
                     </div>
-                    <h3 className="text-base font-semibold text-[var(--color-on-surface)] font-[var(--font-display)]">{f.title}</h3>
-                    <p className="mt-2 text-sm text-[var(--color-on-surface-variant)] leading-relaxed">{f.desc}</p>
+                    <h3 className="text-sm sm:text-base font-semibold text-[var(--color-on-surface)] font-[var(--font-display)]">{f.title}</h3>
+                    <p className="mt-2 text-xs sm:text-sm text-[var(--color-on-surface-variant)] leading-relaxed">{f.desc}</p>
                   </div>
                 ))}
               </div>
             </div>
           </section>
 
-          <section className="py-16 sm:py-20">
-            <div className="max-w-[1440px] mx-auto px-5 sm:px-8">
-              <div className="text-center mb-12">
-                <h2 className="text-2xl sm:text-3xl font-bold text-[var(--color-on-surface)] font-[var(--font-display)]">
+          <section className="py-12 sm:py-16 lg:py-20">
+            <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center mb-8 sm:mb-10 lg:mb-12">
+                <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[var(--color-on-surface)] font-[var(--font-display)]">
                   Supported frameworks
                 </h2>
                 <p className="mt-3 text-sm text-[var(--color-on-surface-variant)]">
                   Auto-detected and deployed with the right configuration.
                 </p>
               </div>
-              <div className="flex flex-wrap justify-center gap-3">
+              <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
                 {frameworks.map((fw) => (
                   <span
                     key={fw}
-                    className="px-4 py-2 text-sm font-mono rounded-[var(--radius)] bg-[var(--color-surface-container-high)] text-[var(--color-on-surface-variant)] border border-[rgba(255,255,255,0.06)]"
+                    className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-mono rounded-[var(--radius)] bg-[var(--color-surface-container-high)] text-[var(--color-on-surface-variant)] border border-[rgba(255,255,255,0.06)]"
                   >
                     {fw}
                   </span>
@@ -187,40 +187,40 @@ export default function Welcome() {
             </div>
           </section>
 
-          <section className="py-16 sm:py-20 bg-[var(--color-surface-container)]">
-            <div className="max-w-[1440px] mx-auto px-5 sm:px-8 text-center">
-              <h2 className="text-2xl sm:text-3xl font-bold text-[var(--color-on-surface)] font-[var(--font-display)]">
+          <section className="py-12 sm:py-16 lg:py-20 bg-[var(--color-surface-container)]">
+            <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
+              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[var(--color-on-surface)] font-[var(--font-display)]">
                 Start hosting in 3 steps
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mt-12 max-w-4xl mx-auto">
-                <div>
-                  <div className="w-12 h-12 rounded-full bg-[var(--color-primary-dim)] flex items-center justify-center mx-auto mb-4">
-                    <span className="text-lg font-bold text-[var(--color-primary)] font-[var(--font-display)]">1</span>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 mt-8 sm:mt-10 lg:mt-12 max-w-4xl mx-auto">
+                <div className="px-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[var(--color-primary-dim)] flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                    <span className="text-base sm:text-lg font-bold text-[var(--color-primary)] font-[var(--font-display)]">1</span>
                   </div>
-                  <h3 className="text-base font-semibold text-[var(--color-on-surface)] font-[var(--font-display)]">Create account</h3>
-                  <p className="mt-2 text-sm text-[var(--color-on-surface-variant)]">Sign up and get your personal dashboard ready.</p>
+                  <h3 className="text-sm sm:text-base font-semibold text-[var(--color-on-surface)] font-[var(--font-display)]">Create account</h3>
+                  <p className="mt-2 text-xs sm:text-sm text-[var(--color-on-surface-variant)]">Sign up and get your personal dashboard ready.</p>
                 </div>
-                <div>
-                  <div className="w-12 h-12 rounded-full bg-[var(--color-primary-dim)] flex items-center justify-center mx-auto mb-4">
-                    <span className="text-lg font-bold text-[var(--color-primary)] font-[var(--font-display)]">2</span>
+                <div className="px-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[var(--color-primary-dim)] flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                    <span className="text-base sm:text-lg font-bold text-[var(--color-primary)] font-[var(--font-display)]">2</span>
                   </div>
-                  <h3 className="text-base font-semibold text-[var(--color-on-surface)] font-[var(--font-display)]">Upload project</h3>
-                  <p className="mt-2 text-sm text-[var(--color-on-surface-variant)]">Drag-drop files, upload a ZIP, or import from GitHub.</p>
+                  <h3 className="text-sm sm:text-base font-semibold text-[var(--color-on-surface)] font-[var(--font-display)]">Upload project</h3>
+                  <p className="mt-2 text-xs sm:text-sm text-[var(--color-on-surface-variant)]">Drag-drop files, upload a ZIP, or import from GitHub.</p>
                 </div>
-                <div>
-                  <div className="w-12 h-12 rounded-full bg-[var(--color-primary-dim)] flex items-center justify-center mx-auto mb-4">
-                    <span className="text-lg font-bold text-[var(--color-primary)] font-[var(--font-display)]">3</span>
+                <div className="px-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[var(--color-primary-dim)] flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                    <span className="text-base sm:text-lg font-bold text-[var(--color-primary)] font-[var(--font-display)]">3</span>
                   </div>
-                  <h3 className="text-base font-semibold text-[var(--color-on-surface)] font-[var(--font-display)]">Deploy & share</h3>
-                  <p className="mt-2 text-sm text-[var(--color-on-surface-variant)]">Deploy with one click and get a live URL instantly.</p>
+                  <h3 className="text-sm sm:text-base font-semibold text-[var(--color-on-surface)] font-[var(--font-display)]">Deploy & share</h3>
+                  <p className="mt-2 text-xs sm:text-sm text-[var(--color-on-surface-variant)]">Deploy with one click and get a live URL instantly.</p>
                 </div>
               </div>
             </div>
           </section>
 
-          <section className="py-16 sm:py-20">
-            <div className="max-w-[1440px] mx-auto px-5 sm:px-8 text-center">
-              <h2 className="text-2xl sm:text-3xl font-bold text-[var(--color-on-surface)] font-[var(--font-display)]">
+          <section className="py-12 sm:py-16 lg:py-20">
+            <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
+              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[var(--color-on-surface)] font-[var(--font-display)]">
                 Ready to deploy?
               </h2>
               <p className="mt-3 text-sm sm:text-base text-[var(--color-on-surface-variant)] max-w-lg mx-auto">
@@ -228,7 +228,7 @@ export default function Welcome() {
               </p>
               <Link
                 href="/register"
-                className="inline-flex items-center px-6 py-3 mt-8 text-base font-semibold rounded-full bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:shadow-[0_0_20px_rgb(0,255,102,0.3)]"
+                className="inline-flex items-center justify-center px-6 py-3 mt-6 sm:mt-8 text-sm sm:text-base font-semibold rounded-full bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:shadow-[0_0_20px_rgb(0,255,102,0.3)] w-full sm:w-auto"
               >
                 Get started free
               </Link>
@@ -236,11 +236,11 @@ export default function Welcome() {
           </section>
         </main>
 
-        <footer className="border-t border-[rgba(255,255,255,0.06)] py-8">
-          <div className="max-w-[1440px] mx-auto px-5 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2 text-sm text-[var(--color-outline)]">
-              <div className="w-6 h-6 rounded-[var(--radius)] bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center">
-                <span className="text-[var(--color-on-primary)] font-bold text-xs font-[var(--font-display)]">H</span>
+        <footer className="border-t border-[rgba(255,255,255,0.06)] py-6 sm:py-8">
+          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 text-xs sm:text-sm text-[var(--color-outline)]">
+              <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-[var(--radius)] bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center">
+                <span className="text-[var(--color-on-primary)] font-bold text-[10px] sm:text-xs font-[var(--font-display)]">H</span>
               </div>
               Hideo Hosting
             </div>

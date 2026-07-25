@@ -102,10 +102,10 @@ export default function DashboardIndex() {
         </div>
 
         <div className="bg-[var(--color-bg-card)] backdrop-blur-xl rounded-xl border border-[rgba(255,255,255,0.06)]">
-          <div className="px-6 py-4 border-b border-[rgba(255,255,255,0.06)]">
-            <h2 className="text-lg font-semibold text-[var(--color-on-surface)] font-[var(--font-display)]">Recent Projects</h2>
+          <div className="px-4 sm:px-6 py-4 border-b border-[rgba(255,255,255,0.06)]">
+            <h2 className="text-base sm:text-lg font-semibold text-[var(--color-on-surface)] font-[var(--font-display)]">Recent Projects</h2>
           </div>
-          <div className="px-6 py-4">
+          <div className="px-4 sm:px-6 py-4">
             {loading ? (
               <div className="space-y-3">
                 {[1, 2, 3].map((i) => (
@@ -129,11 +129,11 @@ export default function DashboardIndex() {
                   <div
                     key={project.id}
                     onClick={() => router.visit(`/dashboard/projects/${project.id}`)}
-                    className="flex items-center justify-between p-4 rounded-[var(--radius)] border border-[rgba(255,255,255,0.06)] hover:border-[var(--color-primary)]/30 transition-all duration-200 hover:bg-[var(--color-surface-container-high)] cursor-pointer"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 rounded-[var(--radius)] border border-[rgba(255,255,255,0.06)] hover:border-[var(--color-primary)]/30 transition-all duration-200 hover:bg-[var(--color-surface-container-high)] cursor-pointer gap-2 sm:gap-0"
                   >
-                    <div>
-                      <p className="font-medium text-[var(--color-on-surface)]">{project.name}</p>
-                      <p className="text-sm text-[var(--color-on-surface-variant)]">{project.slug}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-sm sm:text-base text-[var(--color-on-surface)] truncate">{project.name}</p>
+                      <p className="text-xs sm:text-sm text-[var(--color-on-surface-variant)] truncate">{project.slug}</p>
                       <p className="text-xs text-[var(--color-outline)] mt-1 flex items-center gap-1 font-mono">
                         <Clock className="h-3 w-3" />
                         Running: <TimeElapsed since={project.created_at} />
