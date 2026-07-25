@@ -217,7 +217,7 @@ export default function Welcome() {
                 </p>
               </div>
 
-              <div className="max-w-2xl mx-auto space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {setupSteps.map((step, i) => {
                   const isOpen = openStep === i
                   const StepIcon = step.icon
@@ -232,7 +232,7 @@ export default function Welcome() {
                     >
                       <button
                         onClick={() => setOpenStep(isOpen ? null : i)}
-                        className="w-full flex items-center gap-3 p-4 sm:p-5 text-left"
+                        className="w-full flex items-center gap-3 p-4 text-left"
                       >
                         <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
                           isOpen ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-primary-dim)]'
@@ -240,7 +240,7 @@ export default function Welcome() {
                           <StepIcon className={`h-4 w-4 ${isOpen ? 'text-[var(--color-on-primary)]' : 'text-[var(--color-primary)]'}`} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-sm sm:text-base font-semibold text-[var(--color-on-surface)] font-[var(--font-display)]">
+                          <h3 className="text-sm font-semibold text-[var(--color-on-surface)] font-[var(--font-display)]">
                             {step.title}
                           </h3>
                         </div>
@@ -248,13 +248,13 @@ export default function Welcome() {
                       </button>
 
                       {isOpen && (
-                        <div className="px-4 sm:px-5 pb-4 sm:pb-5 pt-0">
+                        <div className="px-4 pb-4 pt-0">
                           <div className="border-t border-[rgba(255,255,255,0.06)] pt-3">
-                            <ul className="space-y-2">
+                            <ul className="space-y-1.5">
                               {step.details.map((detail, j) => (
-                                <li key={j} className="flex items-start gap-2.5 text-sm text-[var(--color-on-surface-variant)]">
-                                  <span className="w-5 h-5 rounded-full bg-[var(--color-primary-dim)] flex items-center justify-center shrink-0 mt-0.5">
-                                    <span className="text-[10px] font-bold text-[var(--color-primary)]">{j + 1}</span>
+                                <li key={j} className="flex items-start gap-2 text-xs text-[var(--color-on-surface-variant)]">
+                                  <span className="w-4 h-4 rounded-full bg-[var(--color-primary-dim)] flex items-center justify-center shrink-0 mt-0.5">
+                                    <span className="text-[9px] font-bold text-[var(--color-primary)]">{j + 1}</span>
                                   </span>
                                   <span>{detail}</span>
                                 </li>
