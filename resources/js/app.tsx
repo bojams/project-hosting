@@ -6,6 +6,7 @@ import AppLayout from '@/layouts/app-layout';
 import AuthLayout from '@/layouts/auth-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import DashboardLayout from '@/layouts/dashboard-layout';
+import LoadingPage from '@/components/loading-page';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Hideo Hosting';
 
@@ -33,6 +34,7 @@ createInertiaApp({
     withApp(app) {
         return (
             <TooltipProvider delayDuration={0}>
+                <LoadingPage />
                 {app}
                 <Toaster />
             </TooltipProvider>
