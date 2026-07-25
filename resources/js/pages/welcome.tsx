@@ -181,24 +181,24 @@ export default function Welcome() {
           </section>
 
           {/* Features */}
-          <section id="features" className="py-12 sm:py-16 lg:py-20 bg-[var(--color-surface-container)]">
+          <section id="features" className="py-8 sm:py-12 lg:py-16 bg-[var(--color-surface-container)]">
             <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="text-center mb-10 sm:mb-12 lg:mb-16">
-                <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[var(--color-on-surface)] font-[var(--font-display)]">
+              <div className="text-center mb-6 sm:mb-8 lg:mb-10">
+                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-[var(--color-on-surface)] font-[var(--font-display)]">
                   Yang Anda butuhkan untuk hosting
                 </h2>
-                <p className="mt-3 text-sm sm:text-base text-[var(--color-on-surface-variant)] max-w-2xl mx-auto px-4">
+                <p className="mt-2 text-xs sm:text-sm text-[var(--color-on-surface-variant)] max-w-xl mx-auto px-4">
                   Dari upload hingga live — semua alat untuk mengelola proyek web Anda dalam satu tempat.
                 </p>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
                 {features.map((f) => (
-                  <div key={f.title} className="p-5 sm:p-6 rounded-xl bg-[var(--color-bg-card)] border border-[rgba(255,255,255,0.06)] hover:border-[var(--color-primary)]/30 transition-all duration-300">
-                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-[var(--color-primary-dim)] flex items-center justify-center mb-3 sm:mb-4">
-                      <f.icon className="h-4 w-4 sm:h-5 sm:w-5 text-[var(--color-primary)]" />
+                  <div key={f.title} className="p-3 sm:p-4 rounded-xl bg-[var(--color-bg-card)] border border-[rgba(255,255,255,0.06)] hover:border-[var(--color-primary)]/30 transition-all duration-300">
+                    <div className="w-8 h-8 rounded-lg bg-[var(--color-primary-dim)] flex items-center justify-center mb-2 sm:mb-3">
+                      <f.icon className="h-4 w-4 text-[var(--color-primary)]" />
                     </div>
-                    <h3 className="text-sm sm:text-base font-semibold text-[var(--color-on-surface)] font-[var(--font-display)]">{f.title}</h3>
-                    <p className="mt-2 text-xs sm:text-sm text-[var(--color-on-surface-variant)] leading-relaxed">{f.desc}</p>
+                    <h3 className="text-xs sm:text-sm font-semibold text-[var(--color-on-surface)] font-[var(--font-display)]">{f.title}</h3>
+                    <p className="mt-1 text-[10px] sm:text-xs text-[var(--color-on-surface-variant)] leading-relaxed">{f.desc}</p>
                   </div>
                 ))}
               </div>
@@ -206,13 +206,13 @@ export default function Welcome() {
           </section>
 
           {/* Setup Cards */}
-          <section id="cara-kerja" className="py-12 sm:py-16 lg:py-20">
+          <section id="cara-kerja" className="py-8 sm:py-12 lg:py-16">
             <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="text-center mb-10 sm:mb-12 lg:mb-16">
-                <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[var(--color-on-surface)] font-[var(--font-display)]">
+              <div className="text-center mb-6 sm:mb-8 lg:mb-10">
+                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-[var(--color-on-surface)] font-[var(--font-display)]">
                   Cara Setup Project
                 </h2>
-                <p className="mt-3 text-sm sm:text-base text-[var(--color-on-surface-variant)] max-w-2xl mx-auto px-4">
+                <p className="mt-2 text-xs sm:text-sm text-[var(--color-on-surface-variant)] max-w-xl mx-auto px-4">
                   Klik setiap langkah untuk melihat panduan lengkapnya.
                 </p>
               </div>
