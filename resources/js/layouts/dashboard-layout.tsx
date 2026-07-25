@@ -76,17 +76,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return (
         <div className="h-[100dvh] flex overflow-hidden bg-[var(--color-bg-base)]">
             {/* Desktop sidebar — always visible, in document flow */}
-            <aside className="hidden lg:flex lg:w-52 lg:shrink-0 bg-[var(--color-surface-container)] border-r border-[rgba(255,255,255,0.06)] flex-col">
-                <div className="flex items-center gap-2 py-4 px-4">
+            <aside className="hidden lg:flex lg:w-40 lg:shrink-0 bg-[var(--color-surface-container)] border-r border-[rgba(255,255,255,0.06)] flex-col">
+                <div className="flex items-center justify-center gap-2 py-4 px-3">
                     <Link href="/" className="flex items-center gap-2">
                         <div className="w-7 h-7 rounded-[var(--radius)] bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center">
                             <span className="text-[var(--color-on-primary)] font-bold text-xs font-[var(--font-display)]">H</span>
                         </div>
-                        <span className="text-base font-bold text-[var(--color-on-surface)] font-[var(--font-display)]">Hideo Hosting</span>
+                        <span className="text-sm font-bold text-[var(--color-on-surface)] font-[var(--font-display)]">Hideo</span>
                     </Link>
                 </div>
 
-                <nav className="flex-1 overflow-y-auto px-4 space-y-1">
+                <nav className="flex-1 overflow-y-auto px-2.5 space-y-0.5">
                     {navLinks}
                 </nav>
 
