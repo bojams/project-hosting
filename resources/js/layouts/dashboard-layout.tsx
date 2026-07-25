@@ -76,13 +76,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return (
         <div className="h-[100dvh] flex overflow-hidden bg-[var(--color-bg-base)]">
             {/* Desktop sidebar — always visible, in document flow */}
-            <aside className="hidden lg:flex lg:w-64 lg:shrink-0 bg-[var(--color-surface-container)] border-r border-[rgba(255,255,255,0.06)] flex-col">
-                <div className="flex items-center gap-2 py-5 px-5">
+            <aside className="hidden lg:flex lg:w-52 lg:shrink-0 bg-[var(--color-surface-container)] border-r border-[rgba(255,255,255,0.06)] flex-col">
+                <div className="flex items-center gap-2 py-4 px-4">
                     <Link href="/" className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-[var(--radius)] bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center">
-                            <span className="text-[var(--color-on-primary)] font-bold text-sm font-[var(--font-display)]">H</span>
+                        <div className="w-7 h-7 rounded-[var(--radius)] bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center">
+                            <span className="text-[var(--color-on-primary)] font-bold text-xs font-[var(--font-display)]">H</span>
                         </div>
-                        <span className="text-lg font-bold text-[var(--color-on-surface)] font-[var(--font-display)]">Hideo Hosting</span>
+                        <span className="text-base font-bold text-[var(--color-on-surface)] font-[var(--font-display)]">Hideo Hosting</span>
                     </Link>
                 </div>
 
