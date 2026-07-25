@@ -112,18 +112,18 @@ export default function Welcome() {
         {/* Header */}
         <header className="border-b border-[rgba(255,255,255,0.06)]">
           <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-14 sm:h-16">
-              <Link href="/" className="flex items-center gap-2 shrink-0">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-[var(--radius)] bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center">
-                  <span className="text-[var(--color-on-primary)] font-bold text-xs sm:text-sm font-[var(--font-display)]">H</span>
+            <div className="flex items-center justify-between h-10 sm:h-12">
+              <Link href="/" className="flex items-center gap-1.5 shrink-0">
+                <div className="w-6 h-6 sm:w-7 sm:h-7 rounded bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center">
+                  <span className="text-[var(--color-on-primary)] font-bold text-[10px] sm:text-xs font-[var(--font-display)]">H</span>
                 </div>
-                <span className="text-base sm:text-xl font-bold text-[var(--color-on-surface)] font-[var(--font-display)]">Hideo Hosting</span>
+                <span className="text-sm sm:text-base font-bold text-[var(--color-on-surface)] font-[var(--font-display)]">Hideo Hosting</span>
               </Link>
-              <div className="flex items-center gap-1.5 sm:gap-4">
-                <Link href="/login" className="text-sm font-medium text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)] px-2 sm:px-3 py-2">
+              <div className="flex items-center gap-1 sm:gap-2">
+                <Link href="/login" className="text-xs sm:text-sm font-medium text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)] px-2 py-1.5">
                   Masuk
                 </Link>
-                <Link href="/register" className="inline-flex items-center px-3 sm:px-5 py-2 sm:py-2.5 text-sm font-medium rounded-[var(--radius)] bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:shadow-[0_0_20px_rgb(0,255,102,0.3)] transition-all">
+                <Link href="/register" className="inline-flex items-center px-2.5 sm:px-4 py-1.5 text-xs sm:text-sm font-medium rounded bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:shadow-[0_0_16px_rgb(0,255,102,0.3)] transition-all">
                   Daftar
                 </Link>
               </div>
