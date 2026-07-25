@@ -33,7 +33,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
     const linkClass = useCallback((path: string) => {
         const isActive = active(path);
-        return `flex items-center gap-3 px-3 py-2.5 rounded-[var(--radius)] text-sm font-medium transition-all duration-200 ${
+        return `flex items-center gap-2.5 px-3 py-2 rounded-[var(--radius)] text-sm font-medium transition-all duration-200 ${
             isActive
                 ? 'bg-[var(--color-surface-container-high)] text-[var(--color-on-surface)]'
                 : 'text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)] hover:text-[var(--color-on-surface)]'
@@ -41,7 +41,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     }, [active]);
 
     const iconClass = useCallback((path: string) => {
-        return `h-4 w-4 shrink-0 ${active(path) ? 'text-[var(--color-primary)]' : ''}`;
+        return `h-[18px] w-[18px] shrink-0 ${active(path) ? 'text-[var(--color-primary)]' : ''}`;
     }, [active]);
 
     const navLinks = useMemo(() => (
@@ -77,7 +77,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="h-[100dvh] flex overflow-hidden bg-[var(--color-bg-base)]">
             {/* Desktop sidebar — always visible, in document flow */}
             <aside className="hidden lg:flex lg:w-64 lg:shrink-0 bg-[var(--color-surface-container)] border-r border-[rgba(255,255,255,0.06)] flex-col">
-                <div className="flex items-center gap-2 p-6">
+                <div className="flex items-center gap-2 py-5 px-5">
                     <Link href="/" className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-[var(--radius)] bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center">
                             <span className="text-[var(--color-on-primary)] font-bold text-sm font-[var(--font-display)]">H</span>
@@ -92,8 +92,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
                 <div className="p-4 border-t border-[rgba(255,255,255,0.06)]">
                     {user && (
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="w-8 h-8 shrink-0 rounded-full bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center text-[var(--color-on-primary)] text-sm font-semibold">
+                        <div className="flex items-center gap-2.5 mb-3">
+                            <div className="w-7 h-7 shrink-0 rounded-full bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center text-[var(--color-on-primary)] text-xs font-semibold">
                                 {user.username[0].toUpperCase()}
                             </div>
                             <div className="flex-1 min-w-0">
@@ -126,10 +126,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     sidebarOpen ? 'translate-x-0' : '-translate-x-full'
                 }`}
             >
-                <div className="flex items-center justify-between p-4">
+                <div className="flex items-center justify-between py-4 px-5">
                     <Link href="/" className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-[var(--radius)] bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center">
-                            <span className="text-[var(--color-on-primary)] font-bold text-sm font-[var(--font-display)]">H</span>
+                        <div className="w-7 h-7 rounded-[var(--radius)] bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center">
+                            <span className="text-[var(--color-on-primary)] font-bold text-xs font-[var(--font-display)]">H</span>
                         </div>
                         <span className="text-lg font-bold text-[var(--color-on-surface)] font-[var(--font-display)]">Hideo Hosting</span>
                     </Link>
@@ -144,8 +144,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
                 <div className="p-4 border-t border-[rgba(255,255,255,0.06)]">
                     {user && (
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="w-8 h-8 shrink-0 rounded-full bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center text-[var(--color-on-primary)] text-sm font-semibold">
+                        <div className="flex items-center gap-2.5 mb-3">
+                            <div className="w-7 h-7 shrink-0 rounded-full bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center text-[var(--color-on-primary)] text-xs font-semibold">
                                 {user.username[0].toUpperCase()}
                             </div>
                             <div className="flex-1 min-w-0">
@@ -168,7 +168,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
             {/* Main content */}
             <main className="flex-1 min-w-0 min-h-0 flex flex-col overflow-hidden">
-                <div className="shrink-0 flex items-center gap-3 px-4 py-3 border-b border-[rgba(255,255,255,0.06)] lg:hidden">
+                <div className="shrink-0 flex items-center gap-3 px-4 py-2.5 border-b border-[rgba(255,255,255,0.06)] lg:hidden">
                     <button
                         onClick={() => setSidebarOpen(true)}
                         className="p-1.5 text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)]"
@@ -177,10 +177,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         <Menu className="h-5 w-5" />
                     </button>
                     <Link href="/" className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-md bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center">
+                        <div className="w-7 h-7 rounded-md bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center">
                             <span className="text-[var(--color-on-primary)] font-bold text-xs font-[var(--font-display)]">H</span>
                         </div>
-                        <span className="text-lg font-bold font-[var(--font-display)]">Hideo Hosting</span>
+                        <span className="text-base font-bold font-[var(--font-display)]">Hideo Hosting</span>
                     </Link>
                 </div>
                 <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 lg:p-8">
