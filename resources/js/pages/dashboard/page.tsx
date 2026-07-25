@@ -1,8 +1,8 @@
 import { Head, Link, router, usePage } from '@inertiajs/react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { api } from '@/lib/api'
 import type { Project, ApiResponse } from '@/types/api'
-import { FolderKanban, Globe, FileEdit, Clock, ExternalLink, Plus } from 'lucide-react'
+import { FolderKanban, Globe, FileEdit, Clock, ExternalLink, Plus, ChevronLeft, ChevronRight } from 'lucide-react'
 
 function TimeElapsed({ since }: { since: string }) {
   const [text, setText] = useState('')
@@ -35,27 +35,32 @@ export default function DashboardIndex() {
   const [projects, setProjects] = useState<Project[]>([])
   const [stats, setStats] = useState({ total: 0, published: 0, draft: 0 })
   const [loading, setLoading] = useState(true)
+  const [page, setPage] = useState(1)
+  const limit = 2
+  const totalPages = Math.ceil(stats.total / limit)
+
+  const loadProjects = useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await api.get<ApiResponse<{ projects: Project[]; total: number; published: number; draft: number }>>(`/api/projects?page=${page}&limit=${limit}`)
+      if (res.success && res.data) {
+        setProjects(res.data.projects || [])
+        const d = res.data
+        setStats({
+          total: d.total,
+          published: d.published ?? 0,
+          draft: d.draft ?? 0,
+        })
+      }
+    } catch {
+    } finally {
+      setLoading(false)
+    }
+  }, [page, limit])
 
   useEffect(() => {
-    async function load() {
-      try {
-        const res = await api.get<ApiResponse<{ projects: Project[]; total: number; published: number; draft: number }>>('/api/projects?limit=5')
-        if (res.success && res.data) {
-          setProjects(res.data.projects || [])
-          const d = res.data
-          setStats({
-            total: d.total,
-            published: d.published ?? 0,
-            draft: d.draft ?? 0,
-          })
-        }
-      } catch {
-      } finally {
-        setLoading(false)
-      }
-    }
-    load()
-  }, [])
+    loadProjects()
+  }, [loadProjects])
 
   return (
     <>
@@ -174,6 +179,37 @@ export default function DashboardIndex() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-1.5 px-4 py-3 border-t border-[rgba(255,255,255,0.06)]">
+                <button
+                  disabled={page <= 1}
+                  onClick={() => setPage((p) => p - 1)}
+                  className="p-1.5 rounded-[var(--radius)] text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={`min-w-[28px] h-7 text-xs font-medium rounded-[var(--radius)] transition-colors ${
+                      page === p
+                        ? 'bg-[var(--color-primary)] text-[var(--color-on-primary)]'
+                        : 'text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)]'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
+                <button
+                  disabled={page >= totalPages}
+                  onClick={() => setPage((p) => p + 1)}
+                  className="p-1.5 rounded-[var(--radius)] text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
               </div>
             )}
           </div>
