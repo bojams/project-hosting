@@ -292,15 +292,15 @@ export default function Welcome() {
           </section>
 
           {/* CTA */}
-          <section className="py-12 sm:py-16 lg:py-20">
+          <section className="py-8 sm:py-10 lg:py-12">
             <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
-              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[var(--color-on-surface)] font-[var(--font-display)]">
+              <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-[var(--color-on-surface)] font-[var(--font-display)]">
                 Siap untuk deploy?
               </h2>
-              <p className="mt-3 text-sm sm:text-base text-[var(--color-on-surface-variant)] max-w-lg mx-auto">
+              <p className="mt-2 text-xs sm:text-sm text-[var(--color-on-surface-variant)] max-w-md mx-auto">
                 Buat akun gratis dan deploy proyek pertama Anda dalam hitungan menit.
               </p>
-              <Link href="/register" className="inline-flex items-center justify-center px-6 py-3 mt-6 sm:mt-8 text-sm sm:text-base font-semibold rounded-full bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:shadow-[0_0_20px_rgb(0,255,102,0.3)] w-full sm:w-auto">
+              <Link href="/register" className="inline-flex items-center justify-center px-5 py-2 mt-4 text-sm font-semibold rounded-full bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:shadow-[0_0_20px_rgb(0,255,102,0.3)] w-full sm:w-auto">
                 Daftar gratis
               </Link>
             </div>
@@ -308,15 +308,15 @@ export default function Welcome() {
         </main>
 
         {/* Footer */}
-        <footer className="border-t border-[rgba(255,255,255,0.06)] py-6 sm:py-8">
-          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
-            <div className="flex items-center gap-2 text-xs sm:text-sm text-[var(--color-outline)]">
-              <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-[var(--radius)] bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center">
-                <span className="text-[var(--color-on-primary)] font-bold text-[10px] sm:text-xs font-[var(--font-display)]">H</span>
+        <footer className="border-t border-[rgba(255,255,255,0.06)] py-4">
+          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 text-xs text-[var(--color-outline)]">
+              <div className="w-4 h-4 rounded bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center">
+                <span className="text-[var(--color-on-primary)] font-bold text-[8px] font-[var(--font-display)]">H</span>
               </div>
               Hideo Hosting
             </div>
-            <p className="text-xs text-[var(--color-outline)]">
+            <p className="text-[10px] text-[var(--color-outline)]">
               &copy; {new Date().getFullYear()} Hideo Hosting. All rights reserved.
             </p>
           </div>
