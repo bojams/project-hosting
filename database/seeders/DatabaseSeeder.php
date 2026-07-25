@@ -18,8 +18,8 @@ class DatabaseSeeder extends Seeder
         ]);
 
         User::factory()->create([
-            'username' => 'pending_user',
-            'email' => 'pending@hideo.com',
+            'username' => 'admin',
+            'email' => 'admin@hideo.id',
             'password' => bcrypt('password'),
             'role' => 'admin',
             'status' => 'active',
