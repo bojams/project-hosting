@@ -262,6 +262,16 @@ class DockerDeployer
         $df .= "RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer\n";
         $df .= "WORKDIR /var/www/html\n";
         $df .= "COPY . .\n";
+        $df .= "RUN if [ ! -f bootstrap/app.php ]; then \\\n";
+        $df .= "        mkdir -p bootstrap && \\\n";
+        $df .= "        printf '<?php\\n\\nuse Illuminate\\\\Foundation\\\\Application;\\nuse Illuminate\\\\Foundation\\\\Configuration\\\\Exceptions;\\nuse Illuminate\\\\Foundation\\\\Configuration\\\\Middleware;\\n\\nreturn Application::configure(basePath: dirname(__DIR__))\\n    ->withRouting(\\n        web: __DIR__.\"/../routes/web.php\",\\n        commands: __DIR__.\"/../routes/console.php\",\\n        health: \"/up\",\\n    )\\n    ->withMiddleware(function (Middleware \\$middleware) {\\n        //\\n    })\\n    ->withExceptions(function (Exceptions \\$exceptions) {\\n        //\\n    })->create();\\n' > bootstrap/app.php && \\\n";
+        $df .= "        printf '<?php\\n\\nreturn [\\n    //\\n];\\n' > bootstrap/providers.php; \\\n";
+        $df .= "    fi\n";
+        $df .= "RUN if [ ! -f routes/web.php ]; then \\\n";
+        $df .= "        mkdir -p routes && \\\n";
+        $df .= "        printf '<?php\\n\\nuse Illuminate\\\\Support\\\\Facades\\\\Route;\\n\\nRoute::get(\"/\", function () {\\n    return response(\\\"Hello from Hideo Hosting!\\\");\\n});\\n' > routes/web.php && \\\n";
+        $df .= "        printf '<?php\\n\\nuse Illuminate\\\\Support\\\\Facades\\\\Schedule;\\n' > routes/console.php; \\\n";
+        $df .= "    fi\n";
 
         if ($install) {
             $df .= "RUN {$install}\n";
