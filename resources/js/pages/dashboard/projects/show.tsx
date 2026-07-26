@@ -8,7 +8,8 @@ import {
   ImageIcon, FileText, Archive, File, ExternalLink, Upload, Rocket,
   Trash2, Pencil, Check, X, FolderKanban, Globe, FileEdit,
   Clock, HardDrive, Loader2, Package, Settings,
-  Terminal, Cpu, Plus, Minus, Edit3, MessageSquare, Eye, EyeOff, Play
+  Terminal, Cpu, Plus, Minus, Edit3, MessageSquare, Eye, EyeOff, Play,
+  ChevronLeft, ChevronRight
 } from 'lucide-react'
 
 function TimeElapsed({ since }: { since: string }) {
@@ -85,6 +86,8 @@ export default function ProjectShow() {
   const [selectedFiles, setSelectedFiles] = useState<number[]>([])
   const [renamingFile, setRenamingFile] = useState<{ id: number; name: string } | null>(null)
   const [extractedFiles, setExtractedFiles] = useState<string[]>([])
+  const [filePage, setFilePage] = useState(1)
+  const fileLimit = 8
 
   const [progress, setProgress] = useState({
     active: false, fileIndex: 0, totalFiles: 0,
@@ -125,6 +128,11 @@ export default function ProjectShow() {
   }, [id])
 
   useEffect(() => { if (id) loadProject() }, [id, loadProject])
+
+  useEffect(() => {
+    const maxPage = Math.ceil(media.length / fileLimit) || 1
+    if (filePage > maxPage) setFilePage(maxPage)
+  }, [media.length, filePage, fileLimit])
 
   useEffect(() => {
     logsEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -583,76 +591,117 @@ export default function ProjectShow() {
                       <p className="text-sm text-[var(--color-on-surface-variant)]">Drop files here or click to upload</p>
                     </div>
                   ) : (
-                    <div className="space-y-1">
-                      {media.map((file) => (
-                        <div
-                          key={file.id}
-                          className={`flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-[var(--radius)] border border-[rgba(255,255,255,0.06)] hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-surface-container-high)] transition-all duration-200 group ${
-                            selectedFiles.includes(file.id) ? 'border-[var(--color-primary)]/50 bg-[var(--color-primary-dim)]' : ''
-                          }`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={selectedFiles.includes(file.id)}
-                            onChange={() => {
-                              setSelectedFiles(prev =>
-                                prev.includes(file.id) ? prev.filter(f => f !== file.id) : [...prev, file.id]
-                              )
-                            }}
-                            className="rounded border-[var(--color-outline-variant)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] bg-transparent"
-                          />
-                          {getFileIcon(file.mime_type)}
-                          <div className="flex-1 min-w-0">
-                            {renamingFile?.id === file.id ? (
-                              <form
-                                onSubmit={(e) => { e.preventDefault(); handleRename(file.id, renamingFile.name) }}
-                                className="flex items-center gap-1"
+                    <>
+                      <div className="space-y-1">
+                        {media.slice((filePage - 1) * fileLimit, filePage * fileLimit).map((file) => (
+                          <div
+                            key={file.id}
+                            className={`flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-[var(--radius)] border border-[rgba(255,255,255,0.06)] hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-surface-container-high)] transition-all duration-200 group ${
+                              selectedFiles.includes(file.id) ? 'border-[var(--color-primary)]/50 bg-[var(--color-primary-dim)]' : ''
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedFiles.includes(file.id)}
+                              onChange={() => {
+                                setSelectedFiles(prev =>
+                                  prev.includes(file.id) ? prev.filter(f => f !== file.id) : [...prev, file.id]
+                                )
+                              }}
+                              className="rounded border-[var(--color-outline-variant)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] bg-transparent"
+                            />
+                            {getFileIcon(file.mime_type)}
+                            <div className="flex-1 min-w-0">
+                              {renamingFile?.id === file.id ? (
+                                <form
+                                  onSubmit={(e) => { e.preventDefault(); handleRename(file.id, renamingFile.name) }}
+                                  className="flex items-center gap-1"
+                                >
+                                  <input
+                                    value={renamingFile.name}
+                                    onChange={(e) => setRenamingFile({ ...renamingFile, name: e.target.value })}
+                                    placeholder="new filename"
+                                    className="flex-1 text-sm bg-[var(--color-bg-base)] border border-[var(--color-outline-variant)] rounded px-2 py-0.5 text-[var(--color-on-surface)] focus:outline-none focus:border-[var(--color-primary)]"
+                                    autoFocus
+                                  />
+                                  <button type="submit" className="p-1 text-[var(--color-success)]"><Check className="h-3.5 w-3.5" /></button>
+                                  <button type="button" onClick={() => setRenamingFile(null)} className="p-1 text-[var(--color-danger)]"><X className="h-3.5 w-3.5" /></button>
+                                </form>
+                              ) : (
+                                <p className="text-sm font-medium text-[var(--color-on-surface)] truncate">{file.path || file.file_name || file.name}</p>
+                              )}
+                              <p className="text-xs text-[var(--color-on-surface-variant)]">
+                                {formatBytes(file.size)} &middot; {formatDate(file.created_at)}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity max-sm:opacity-100">
+                              <button
+                                onClick={() => setRenamingFile({ id: file.id, name: file.name })}
+                                className="p-1.5 text-[var(--color-outline)] hover:text-[var(--color-on-surface)] transition-colors"
+                                title="Rename"
                               >
-                                <input
-                                  value={renamingFile.name}
-                                  onChange={(e) => setRenamingFile({ ...renamingFile, name: e.target.value })}
-                                  placeholder="new filename"
-                                  className="flex-1 text-sm bg-[var(--color-bg-base)] border border-[var(--color-outline-variant)] rounded px-2 py-0.5 text-[var(--color-on-surface)] focus:outline-none focus:border-[var(--color-primary)]"
-                                  autoFocus
-                                />
-                                <button type="submit" className="p-1 text-[var(--color-success)]"><Check className="h-3.5 w-3.5" /></button>
-                                <button type="button" onClick={() => setRenamingFile(null)} className="p-1 text-[var(--color-danger)]"><X className="h-3.5 w-3.5" /></button>
-                              </form>
-                            ) : (
-                              <p className="text-sm font-medium text-[var(--color-on-surface)] truncate">{file.path || file.file_name || file.name}</p>
-                            )}
-                            <p className="text-xs text-[var(--color-on-surface-variant)]">
-                              {formatBytes(file.size)} &middot; {formatDate(file.created_at)}
-                            </p>
+                                <Pencil className="h-3.5 w-3.5" />
+                              </button>
+                              <a
+                                href={file.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-1.5 text-[var(--color-outline)] hover:text-[var(--color-primary)] transition-colors"
+                                title="Open"
+                              >
+                                <ExternalLink className="h-3.5 w-3.5" />
+                              </a>
+                              <button
+                                onClick={() => setConfirmDeleteFile(file.id)}
+                                className="p-1.5 text-[var(--color-outline)] hover:text-[var(--color-danger)] transition-colors"
+                                title="Delete"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity max-sm:opacity-100">
-                            <button
-                              onClick={() => setRenamingFile({ id: file.id, name: file.name })}
-                              className="p-1.5 text-[var(--color-outline)] hover:text-[var(--color-on-surface)] transition-colors"
-                              title="Rename"
-                            >
-                              <Pencil className="h-3.5 w-3.5" />
-                            </button>
-                            <a
-                              href={file.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="p-1.5 text-[var(--color-outline)] hover:text-[var(--color-primary)] transition-colors"
-                              title="Open"
-                            >
-                              <ExternalLink className="h-3.5 w-3.5" />
-                            </a>
-                            <button
-                              onClick={() => setConfirmDeleteFile(file.id)}
-                              className="p-1.5 text-[var(--color-outline)] hover:text-[var(--color-danger)] transition-colors"
-                              title="Delete"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
+                        ))}
+                      </div>
+                      {Math.ceil(media.length / fileLimit) > 1 && (
+                        <div className="flex items-center justify-center gap-0.5 sm:gap-1 mt-3 pt-3 border-t border-[rgba(255,255,255,0.06)]">
+                          <button
+                            disabled={filePage <= 1}
+                            onClick={() => setFilePage((p) => p - 1)}
+                            className="p-1 rounded-[var(--radius)] text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                          >
+                            <ChevronLeft className="h-3.5 w-3.5" />
+                          </button>
+                          {(() => {
+                            const total = Math.ceil(media.length / fileLimit)
+                            const maxVisible = 5
+                            const start = Math.max(1, Math.min(filePage - Math.floor(maxVisible / 2), total - maxVisible + 1))
+                            const end = Math.min(start + maxVisible - 1, total)
+                            const pages: number[] = []
+                            for (let i = start; i <= end; i++) pages.push(i)
+                            return pages.map((p) => (
+                              <button
+                                key={p}
+                                onClick={() => setFilePage(p)}
+                                className={`min-w-[20px] sm:min-w-[24px] h-5 sm:h-6 text-[9px] sm:text-[10px] font-medium rounded-[var(--radius)] transition-colors ${
+                                  filePage === p
+                                    ? 'bg-[var(--color-primary)] text-[var(--color-on-primary)]'
+                                    : 'text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)]'
+                                }`}
+                              >
+                                {p}
+                              </button>
+                            ))
+                          })()}
+                          <button
+                            disabled={filePage >= Math.ceil(media.length / fileLimit)}
+                            onClick={() => setFilePage((p) => p + 1)}
+                            className="p-1 rounded-[var(--radius)] text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                          >
+                            <ChevronRight className="h-3.5 w-3.5" />
+                          </button>
                         </div>
-                      ))}
-                    </div>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
