@@ -100,7 +100,7 @@ params.set('status', filterStatus)
         </div>
 
         {showCreate && (
-          <div className="bg-[var(--color-bg-card)] backdrop-blur-xl rounded-lg border border-[rgba(255,255,255,0.06)] p-4">
+          <div className="bg-[var(--color-bg-card)] backdrop-blur-xl rounded-lg border border-[var(--color-border)] p-4">
             <form onSubmit={createProject} className="space-y-3">
               <div>
                 <label className="block text-xs font-medium text-[var(--color-on-surface-variant)] mb-1">Nama Proyek</label>
@@ -157,7 +157,7 @@ params.set('status', filterStatus)
           ))}
         </div>
 
-        <div className="bg-[var(--color-bg-card)] backdrop-blur-xl rounded-lg border border-[rgba(255,255,255,0.06)]">
+        <div className="bg-[var(--color-bg-card)] backdrop-blur-xl rounded-lg border border-[var(--color-border)]">
           <div className="px-4 py-3">
             {loading ? (
               <div className="space-y-2">
@@ -175,7 +175,7 @@ params.set('status', filterStatus)
                 {projects.map((project) => (
                   <div
                     key={project.id}
-                    className="flex items-center justify-between px-3 py-2.5 rounded-[var(--radius)] border border-[rgba(255,255,255,0.06)] hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-surface-container-high)] transition-all duration-200 group"
+                    className="flex items-center justify-between px-3 py-2.5 rounded-[var(--radius)] border border-[var(--color-border)] hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-surface-container-high)] transition-all duration-200 group"
                   >
                     <div
                       onClick={() => router.visit(`/dashboard/projects/${project.id}`)}
@@ -227,7 +227,7 @@ params.set('status', filterStatus)
             )}
 
             {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-0.5 sm:gap-1 mt-3 pt-3 border-t border-[rgba(255,255,255,0.06)]">
+              <div className="flex items-center justify-center gap-0.5 sm:gap-1 mt-3 pt-3 border-t border-[var(--color-border)]">
                 <button
                   disabled={page <= 1}
                   onClick={() => setPage(page - 1)}
@@ -273,7 +273,7 @@ pages.push(i)
 
         {deletingId && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setDeletingId(null)}>
-            <div className="bg-[var(--color-surface-container)] backdrop-blur-xl rounded-lg shadow-2xl border border-[rgba(255,255,255,0.06)] p-4 max-w-xs w-full mx-4" onClick={e => e.stopPropagation()}>
+            <div className="bg-[var(--color-surface-container)] backdrop-blur-xl rounded-lg shadow-2xl border border-[var(--color-border)] p-4 max-w-xs w-full mx-4" onClick={e => e.stopPropagation()}>
               <h3 className="text-sm font-semibold mb-1 text-[var(--color-on-surface)] font-[var(--font-display)]">Hapus Proyek</h3>
               <p className="text-xs text-[var(--color-on-surface-variant)] mb-3">
                 Yakin ingin menghapus proyek ini? Tindakan ini tidak dapat dibatalkan.

@@ -1,5 +1,5 @@
 import { Head, router, usePage } from '@inertiajs/react'
-import { Trash2, Check, X } from 'lucide-react'
+import { Trash2, Check, X, Pencil, Eye, EyeOff } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
@@ -22,6 +22,12 @@ export default function UsersIndex() {
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [filterStatus, setFilterStatus] = useState('')
   const [refreshKey, setRefreshKey] = useState(0)
+  const [editingUser, setEditingUser] = useState<User | null>(null)
+  const [editEmail, setEditEmail] = useState('')
+  const [editRole, setEditRole] = useState('')
+  const [editPassword, setEditPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     if (!auth?.user) {
@@ -107,6 +113,37 @@ export default function UsersIndex() {
     }
   }
 
+  const openEdit = (user: User) => {
+    setEditingUser(user)
+    setEditEmail(user.email)
+    setEditRole(user.role)
+    setEditPassword('')
+    setShowPassword(false)
+  }
+
+  const handleUpdate = async () => {
+    if (!editingUser) return
+    setSaving(true)
+    try {
+      const payload: Record<string, string> = { role: editRole }
+      if (editEmail !== editingUser.email) {
+        payload.email = editEmail
+      }
+      if (editPassword) {
+        payload.password = editPassword
+      }
+      await api.patch(`/api/users/${editingUser.id}`, payload)
+      toast.success('User updated successfully')
+      setEditingUser(null)
+      setEditPassword('')
+      setRefreshKey(k => k + 1)
+    } catch {
+      toast.error('Failed to update user')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   if (!auth?.user || auth.user.role !== 'admin') {
     return null
   }
@@ -150,7 +187,7 @@ export default function UsersIndex() {
           ))}
         </div>
 
-        <div className="bg-[var(--color-bg-card)] backdrop-blur-xl rounded-xl border border-[rgba(255,255,255,0.06)]">
+        <div className="bg-[var(--color-bg-card)] backdrop-blur-xl rounded-xl border border-[var(--color-border)]">
           <div className="px-4 sm:px-6 py-4">
             {loading ? (
               <div className="space-y-3">
@@ -167,7 +204,7 @@ export default function UsersIndex() {
                 {users.map((user) => (
                   <div
                     key={user.id}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 rounded-[var(--radius)] border border-[rgba(255,255,255,0.06)] hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-surface-container-high)] transition-all duration-200 gap-2 sm:gap-0"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 rounded-[var(--radius)] border border-[var(--color-border)] hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-surface-container-high)] transition-all duration-200 gap-2 sm:gap-0"
                   >
                     <div className="flex items-center gap-3 min-w-0 flex-1">
                       <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center text-[var(--color-on-primary)] text-xs sm:text-sm font-semibold shrink-0">
@@ -216,15 +253,13 @@ export default function UsersIndex() {
 
                       {user.id !== auth?.user?.id && user.status === 'active' && (
                         <>
-                          <select
-                            value={user.role}
-                            onChange={(e) => changeRole(user, e.target.value)}
-                            className="px-2 py-1 text-xs font-mono bg-[var(--color-bg-card)] text-[var(--color-on-surface)] border border-[var(--color-outline-variant)] rounded-[var(--radius)] cursor-pointer hover:border-[var(--color-primary)] outline-none"
+                          <button
+                            onClick={() => openEdit(user)}
+                            className="p-1.5 text-[var(--color-outline)] hover:text-[var(--color-primary)] transition-colors"
+                            title="Edit user"
                           >
-                            <option value="user" className="bg-[var(--color-bg-elevated)]">user</option>
-                            <option value="membership" className="bg-[var(--color-bg-elevated)]">membership</option>
-                            <option value="admin" className="bg-[var(--color-bg-elevated)]">admin</option>
-                          </select>
+                            <Pencil className="h-4 w-4" />
+                          </button>
                           <button
                             onClick={() => setDeletingId(user.id)}
                             className="p-1.5 text-[var(--color-outline)] hover:text-[var(--color-danger)] transition-colors"
@@ -264,7 +299,7 @@ export default function UsersIndex() {
 
         {deletingId && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setDeletingId(null)}>
-            <div className="bg-[var(--color-surface-container)] backdrop-blur-xl rounded-xl shadow-2xl border border-[rgba(255,255,255,0.06)] p-6 max-w-sm w-full mx-4" onClick={e => e.stopPropagation()}>
+            <div className="bg-[var(--color-surface-container)] backdrop-blur-xl rounded-xl shadow-2xl border border-[var(--color-border)] p-6 max-w-sm w-full mx-4" onClick={e => e.stopPropagation()}>
               <h3 className="text-lg font-semibold mb-2 text-[var(--color-on-surface)] font-[var(--font-display)]">Delete User</h3>
               <p className="text-sm text-[var(--color-on-surface-variant)] mb-4">
                 Are you sure you want to delete this user? This cannot be undone.
@@ -281,6 +316,75 @@ export default function UsersIndex() {
                   className="px-4 py-2 text-sm font-medium rounded-[var(--radius)] bg-[var(--color-error-container)] text-[var(--color-on-error-container)] hover:shadow-[0_0_20px_rgb(255,180,171,0.2)] transition-all"
                 >
                   Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {editingUser && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => { setEditingUser(null); setEditPassword(''); setShowPassword(false) }}>
+            <div className="bg-[var(--color-surface-container)] backdrop-blur-xl rounded-xl shadow-2xl border border-[var(--color-border)] p-6 max-w-md w-full mx-4" onClick={e => e.stopPropagation()}>
+              <h3 className="text-lg font-semibold mb-1 text-[var(--color-on-surface)] font-[var(--font-display)]">Edit User</h3>
+              <p className="text-sm text-[var(--color-on-surface-variant)] mb-5">
+                {editingUser.username}
+              </p>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-on-surface)] mb-1.5">Email</label>
+                  <input
+                    type="email"
+                    value={editEmail}
+                    onChange={e => setEditEmail(e.target.value)}
+                    className="w-full px-3 py-2 text-sm bg-[var(--color-bg-card)] text-[var(--color-on-surface)] border border-[var(--color-outline-variant)] rounded-[var(--radius)] outline-none focus:border-[var(--color-primary)] transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-on-surface)] mb-1.5">Role</label>
+                  <select
+                    value={editRole}
+                    onChange={e => setEditRole(e.target.value)}
+                    className="w-full px-3 py-2 text-sm bg-[var(--color-bg-card)] text-[var(--color-on-surface)] border border-[var(--color-outline-variant)] rounded-[var(--radius)] outline-none focus:border-[var(--color-primary)] transition-colors cursor-pointer"
+                  >
+                    <option value="user" className="bg-[var(--color-surface-container)]">user</option>
+                    <option value="membership" className="bg-[var(--color-surface-container)]">membership</option>
+                    <option value="admin" className="bg-[var(--color-surface-container)]">admin</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-on-surface)] mb-1.5">New Password</label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={editPassword}
+                      onChange={e => setEditPassword(e.target.value)}
+                      placeholder="Leave blank to keep current"
+                      className="w-full px-3 py-2 text-sm bg-[var(--color-bg-card)] text-[var(--color-on-surface)] border border-[var(--color-outline-variant)] rounded-[var(--radius)] outline-none focus:border-[var(--color-primary)] transition-colors pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(prev => !prev)}
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)]"
+                      tabIndex={-1}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div className="flex justify-end gap-2 mt-6">
+                <button
+                  onClick={() => { setEditingUser(null); setEditPassword('') }}
+                  className="px-4 py-2 text-sm font-medium rounded-[var(--radius)] border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)] transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleUpdate}
+                  disabled={saving}
+                  className="px-4 py-2 text-sm font-semibold rounded-[var(--radius)] bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:shadow-[0_0_16px_rgb(0,255,102,0.25)] transition-all disabled:opacity-50"
+                >
+                  {saving ? 'Saving...' : 'Save'}
                 </button>
               </div>
             </div>

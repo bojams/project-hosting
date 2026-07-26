@@ -77,6 +77,38 @@ class UsersController extends Controller
         ]);
     }
 
+    public function update(Request $request, User $user): JsonResponse
+    {
+        if ($request->user()->role !== 'admin') {
+            return response()->json(['success' => false, 'message' => 'Forbidden'], 403);
+        }
+
+        $validated = $request->validate([
+            'email' => 'sometimes|email|max:255|unique:users,email,'.$user->id,
+            'role' => 'sometimes|in:user,admin,membership',
+            'password' => 'sometimes|string|min:8|max:100',
+        ]);
+
+        $data = [];
+        if (isset($validated['email'])) {
+            $data['email'] = $validated['email'];
+        }
+        if (isset($validated['role'])) {
+            $data['role'] = $validated['role'];
+        }
+        if (isset($validated['password'])) {
+            $data['password'] = bcrypt($validated['password']);
+        }
+
+        $user->update($data);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User updated successfully',
+            'data' => $user,
+        ]);
+    }
+
     public function destroy(Request $request, User $user): JsonResponse
     {
         if ($request->user()->role !== 'admin') {

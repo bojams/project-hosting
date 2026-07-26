@@ -45,9 +45,9 @@ const setupSteps = [
     icon: Settings,
     title: 'Buat Akun & Login',
     details: [
-      'Klik "Get started" dan isi form registrasi',
-      'Tunggu admin menyetujui akun Anda',
-      'Login dengan email dan password',
+      'Klik "Masuk" dan masukkan email dan password',
+      'Gunakan akun yang sudah terdaftar',
+      'Akses dashboard setelah login sukses',
     ],
   },
   {
@@ -120,11 +120,8 @@ export default function Welcome() {
                 <span className="text-sm sm:text-base font-bold text-[var(--color-on-surface)] font-[var(--font-display)]">Hideo Hosting</span>
               </Link>
               <div className="flex items-center gap-1 sm:gap-2">
-                <Link href="/login" className="text-xs sm:text-sm font-medium text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)] px-2 py-1.5">
+                <Link href="/login" className="inline-flex items-center px-2.5 sm:px-4 py-1.5 text-xs sm:text-sm font-medium rounded bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:shadow-[0_0_16px_rgb(0,255,102,0.3)] transition-all">
                   Masuk
-                </Link>
-                <Link href="/register" className="inline-flex items-center px-2.5 sm:px-4 py-1.5 text-xs sm:text-sm font-medium rounded bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:shadow-[0_0_16px_rgb(0,255,102,0.3)] transition-all">
-                  Daftar
                 </Link>
               </div>
             </div>
@@ -146,7 +143,7 @@ export default function Welcome() {
                     Deteksi framework otomatis, deploy dengan Docker, dan bagikan secara instan.
                   </p>
                   <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-3">
-                    <Link href="/register" className="inline-flex items-center justify-center px-5 py-2.5 text-sm font-semibold rounded-full bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:shadow-[0_0_20px_rgb(0,255,102,0.3)] w-full sm:w-auto">
+                    <Link href="/login" className="inline-flex items-center justify-center px-5 py-2.5 text-sm font-semibold rounded-full bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:shadow-[0_0_20px_rgb(0,255,102,0.3)] w-full sm:w-auto">
                       Mulai deploy sekarang
                     </Link>
                     <Link href="#cara-kerja" className="inline-flex items-center justify-center px-4 py-2.5 text-sm font-medium rounded-[var(--radius)] border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)] w-full sm:w-auto">
@@ -301,8 +298,8 @@ export default function Welcome() {
               <p className="mt-2 text-xs sm:text-sm text-[var(--color-on-surface-variant)] max-w-md mx-auto">
                 Buat akun gratis dan deploy proyek pertama Anda dalam hitungan menit.
               </p>
-              <Link href="/register" className="inline-flex items-center justify-center px-5 py-2 mt-4 text-sm font-semibold rounded-full bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:shadow-[0_0_20px_rgb(0,255,102,0.3)] w-full sm:w-auto">
-                Daftar gratis
+              <Link href="/login" className="inline-flex items-center justify-center px-5 py-2 mt-4 text-sm font-semibold rounded-full bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:shadow-[0_0_20px_rgb(0,255,102,0.3)] w-full sm:w-auto">
+                Mulai deploy sekarang
               </Link>
             </div>
           </section>

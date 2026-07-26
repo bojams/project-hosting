@@ -26,22 +26,22 @@ class FrameworkScanner
                     $info['framework'] = 'laravel';
                     $info['language'] = 'php';
                     $info['framework_version'] = $require['laravel/framework'];
-                    $info['build_command'] = 'composer install --no-dev --optimize-autoloader';
-                    $info['install_command'] = 'composer install --no-dev --optimize-autoloader';
+                    $info['build_command'] = 'composer install --no-dev --optimize-autoloader --no-scripts';
+                    $info['install_command'] = 'composer install --no-dev --optimize-autoloader --no-scripts';
                     $info['start_command'] = 'php artisan serve --host=0.0.0.0 --port={port}';
                     $info['output_dir'] = 'public';
                     $info['internal_port'] = 8000;
-                    $info['docker_base_image'] = 'php:8.4-apache';
+                    $info['docker_base_image'] = 'php:8.4-cli';
 
                     return $info;
                 }
             }
             $info['framework'] = 'php';
             $info['language'] = 'php';
-            $info['build_command'] = 'composer install --no-dev --optimize-autoloader';
-            $info['install_command'] = 'composer install --no-dev --optimize-autoloader';
+            $info['build_command'] = 'composer install --no-dev --optimize-autoloader --no-scripts';
+            $info['install_command'] = 'composer install --no-dev --optimize-autoloader --no-scripts';
             $info['internal_port'] = 8000;
-            $info['docker_base_image'] = 'php:8.4-apache';
+            $info['docker_base_image'] = 'php:8.4-cli';
 
             return $info;
         }

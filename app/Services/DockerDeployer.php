@@ -255,10 +255,13 @@ class DockerDeployer
     private function phpDockerfile(string $base, ?string $install, ?string $start, ?string $output, int $port): string
     {
         $df = "FROM {$base}\n";
-        $df .= "RUN apt-get update && apt-get install -y unzip curl && \\\n";
-        $df .= "    curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer\n";
+        $df .= "RUN apt-get update && apt-get install -y --no-install-recommends \\\n";
+        $df .= "        unzip curl git libzip-dev libonig-dev \\\n";
+        $df .= "    && docker-php-ext-install -j\$(nproc) pdo_mysql mbstring bcmath zip \\\n";
+        $df .= "    && apt-get clean && rm -rf /var/lib/apt/lists/*\n";
+        $df .= "RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer\n";
         $df .= "WORKDIR /var/www/html\n";
-        $df .= "COPY --chown=www-data:www-data . .\n";
+        $df .= "COPY . .\n";
 
         if ($install) {
             $df .= "RUN {$install}\n";

@@ -44,6 +44,7 @@ Route::prefix('api')->middleware('auth')->group(function () {
 
     Route::get('/users', [UsersController::class, 'index']);
     Route::patch('/users/{user}/role', [UsersController::class, 'updateRole']);
+    Route::patch('/users/{user}', [UsersController::class, 'update']);
     Route::post('/users/{user}/approve', [UsersController::class, 'approve']);
     Route::post('/users/{user}/reject', [UsersController::class, 'reject']);
     Route::delete('/users/{user}', [UsersController::class, 'destroy']);
