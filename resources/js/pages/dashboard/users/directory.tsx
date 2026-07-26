@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react'
+import { Head } from '@inertiajs/react'
 import type { User } from '@/types/api'
 
 interface DirectoryProps {

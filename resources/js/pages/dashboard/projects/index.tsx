@@ -1,10 +1,10 @@
 import { Head, router } from '@inertiajs/react'
+import { Plus, FolderKanban, Trash2, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useEffect, useState, useCallback } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import { formatDate } from '@/lib/utils'
 import type { Project, ApiResponse } from '@/types/api'
-import { Plus, FolderKanban, Trash2, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react'
 
 export default function ProjectsIndex() {
   const [projects, setProjects] = useState<Project[]>([])
@@ -21,10 +21,16 @@ export default function ProjectsIndex() {
 
   const loadProjects = useCallback(async () => {
     setLoading(true)
+
     try {
       const params = new URLSearchParams({ page: String(page), limit: String(limit) })
-      if (filterStatus) params.set('status', filterStatus)
+
+      if (filterStatus) {
+params.set('status', filterStatus)
+}
+
       const res = await api.get<ApiResponse<Record<string, unknown>>>(`/api/projects?${params}`)
+
       if (res.success && res.data) {
         setProjects(res.data.projects as Project[] || [])
         setTotal(res.data.total as number)
@@ -37,13 +43,17 @@ export default function ProjectsIndex() {
   }, [page, filterStatus])
 
   useEffect(() => {
-    const t = setTimeout(() => { loadProjects() })
+    const t = setTimeout(() => {
+ loadProjects() 
+})
+
     return () => clearTimeout(t)
   }, [loadProjects])
 
   const createProject = async (e: React.FormEvent) => {
     e.preventDefault()
     setCreating(true)
+
     try {
       await api.post<ApiResponse<Project>>('/api/projects', { name, description: description || undefined })
       setName('')
@@ -133,7 +143,9 @@ export default function ProjectsIndex() {
           {['', 'published', 'draft', 'archived'].map(s => (
             <button
               key={s}
-              onClick={() => { setFilterStatus(s); setPage(1) }}
+              onClick={() => {
+ setFilterStatus(s); setPage(1) 
+}}
               className={`px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider rounded-[var(--radius)] border transition-all duration-200 ${
                 filterStatus === s
                   ? 'bg-[var(--color-primary)] text-[var(--color-on-primary)] border-[var(--color-primary)] font-semibold'
@@ -200,7 +212,9 @@ export default function ProjectsIndex() {
                         {project.status}
                       </span>
                       <button
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDeletingId(project.id) }}
+                        onClick={(e) => {
+ e.preventDefault(); e.stopPropagation(); setDeletingId(project.id) 
+}}
                         className="p-1 sm:opacity-0 sm:group-hover:opacity-100 text-[var(--color-outline)] hover:text-[var(--color-danger)] transition-all max-sm:opacity-100"
                         aria-label="Hapus proyek"
                       >
@@ -226,7 +240,11 @@ export default function ProjectsIndex() {
                   const start = Math.max(1, Math.min(page - Math.floor(maxVisible / 2), totalPages - maxVisible + 1))
                   const end = Math.min(start + maxVisible - 1, totalPages)
                   const pages: number[] = []
-                  for (let i = start; i <= end; i++) pages.push(i)
+
+                  for (let i = start; i <= end; i++) {
+pages.push(i)
+}
+
                   return pages.map((p) => (
                     <button
                       key={p}

@@ -13,6 +13,7 @@ export function toUrl(url: NonNullable<InertiaLinkProps['href']>): string {
 
 export function formatDate(dateStr: string): string {
     const date = new Date(dateStr);
+
     return date.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
@@ -24,10 +25,12 @@ export function formatBytes(bytes: number): string {
     const units = ['B', 'KB', 'MB', 'GB'];
     let i = 0;
     let size = bytes;
+
     while (size >= 1024 && i < units.length - 1) {
         size /= 1024;
         i++;
     }
+
     return `${size.toFixed(1)} ${units[i]}`;
 }
 
@@ -59,16 +62,35 @@ export function fileIconColor(ext: string): string {
         toml: '#9C4221',
         lock: '#7F8C8D',
     };
+
     return colors[ext] || '#849581';
 }
 
 export function fileTypeFromMime(mime: string): string {
-    if (mime.startsWith('image/')) return 'image';
-    if (mime.startsWith('video/')) return 'video';
-    if (mime.startsWith('audio/')) return 'audio';
-    if (mime.includes('pdf')) return 'pdf';
-    if (mime.includes('zip') || mime.includes('rar') || mime.includes('tar') || mime.includes('7z')) return 'archive';
-    if (mime.startsWith('text/') || mime.includes('json') || mime.includes('javascript') || mime.includes('xml')) return 'text';
+    if (mime.startsWith('image/')) {
+return 'image';
+}
+
+    if (mime.startsWith('video/')) {
+return 'video';
+}
+
+    if (mime.startsWith('audio/')) {
+return 'audio';
+}
+
+    if (mime.includes('pdf')) {
+return 'pdf';
+}
+
+    if (mime.includes('zip') || mime.includes('rar') || mime.includes('tar') || mime.includes('7z')) {
+return 'archive';
+}
+
+    if (mime.startsWith('text/') || mime.includes('json') || mime.includes('javascript') || mime.includes('xml')) {
+return 'text';
+}
+
     return 'other';
 }
 
@@ -82,5 +104,6 @@ export function isTextFile(mime: string): boolean {
         'application/x-sh',
         'application/x-yaml',
     ];
+
     return textTypes.some((t) => mime.startsWith(t));
 }

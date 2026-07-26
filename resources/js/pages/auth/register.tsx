@@ -1,5 +1,4 @@
-// @ts-nocheck
-import { Form, Head } from '@inertiajs/react';
+import { Form } from '@inertiajs/react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import TextLink from '@/components/text-link';
@@ -10,11 +9,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { login } from '@/routes';
 import { store } from '@/routes/register';
 
-type Props = {
-    passwordRules?: string;
-};
-
-export default function Register({ passwordRules }: Props) {
+export default function Register() {
     return (
         <>
             <Form {...store.form()}>

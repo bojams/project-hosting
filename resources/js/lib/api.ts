@@ -11,11 +11,15 @@ export class ApiError extends Error {
 
 async function csrfToken(): Promise<string | null> {
     const meta = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]');
-    if (meta) return meta.content;
+
+    if (meta) {
+return meta.content;
+}
 
     try {
         const res = await fetch('/csrf-token');
         const data = await res.json();
+
         return data.token;
     } catch {
         return null;
@@ -52,13 +56,16 @@ async function request<T>(
 
     if (!res.ok) {
         let errorData: unknown;
+
         try {
             errorData = await res.json();
         } catch {
             errorData = { message: res.statusText };
         }
+
         const message =
             (errorData as { message?: string })?.message || res.statusText;
+
         throw new ApiError(message, res.status, errorData);
     }
 

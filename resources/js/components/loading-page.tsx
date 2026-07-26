@@ -9,8 +9,13 @@ function MatrixColumn({ delay, x }: { delay: number; x: number }) {
     const interval = setInterval(() => {
       setChars(prev => {
         const newChars = [...prev]
-        if (newChars.length > 15) newChars.shift()
+
+        if (newChars.length > 15) {
+          newChars.shift()
+        }
+
         newChars.push(matrixChars[Math.floor(Math.random() * matrixChars.length)])
+
         return newChars
       })
     }, 80 + Math.random() * 60)
@@ -46,19 +51,28 @@ function MatrixColumn({ delay, x }: { delay: number; x: number }) {
 export default function LoadingPage() {
   const [visible, setVisible] = useState(true)
 
+  const [columnConfigs] = useState(() =>
+    Array.from({ length: 30 }).map((_, i) => ({
+      delay: Math.random() * 2,
+      x: (i / 30) * 100,
+    })))
+
   useEffect(() => {
     const timer = setTimeout(() => setVisible(false), 2000)
+
     return () => clearTimeout(timer)
   }, [])
 
-  if (!visible) return null
+  if (!visible) {
+    return null
+  }
 
   return (
     <div className="fixed inset-0 z-[9999] bg-[var(--color-bg-base)] flex items-center justify-center overflow-hidden">
       {/* Matrix rain background */}
       <div className="absolute inset-0 overflow-hidden">
-        {Array.from({ length: 30 }).map((_, i) => (
-          <MatrixColumn key={i} delay={Math.random() * 2} x={(i / 30) * 100} />
+        {columnConfigs.map((cfg, i) => (
+          <MatrixColumn key={i} delay={cfg.delay} x={cfg.x} />
         ))}
       </div>
 

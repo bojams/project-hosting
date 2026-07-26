@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Form, Head } from '@inertiajs/react';
 import {
     index as confirmOptions,

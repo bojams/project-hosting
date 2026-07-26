@@ -1,9 +1,9 @@
 import { Head, Link, router, usePage } from '@inertiajs/react'
-import { useCallback, useEffect, useState } from 'react'
+import { FolderKanban, Globe, FileEdit, Clock, ExternalLink, Plus, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import type { Project, ApiResponse } from '@/types/api'
-import { FolderKanban, Globe, FileEdit, Clock, ExternalLink, Plus, ChevronLeft, ChevronRight } from 'lucide-react'
 
 function TimeElapsed({ since }: { since: string }) {
   const [text, setText] = useState('')
@@ -13,7 +13,13 @@ function TimeElapsed({ since }: { since: string }) {
 
     const update = () => {
       const diff = Date.now() - start
-      if (diff < 0) { setText('Belum dimulai'); return }
+
+      if (diff < 0) {
+ setText('Belum dimulai');
+
+ return 
+}
+
       const totalSec = Math.floor(diff / 1000)
       const d = Math.floor(totalSec / 86400)
       const h = Math.floor((totalSec % 86400) / 3600)
@@ -24,6 +30,7 @@ function TimeElapsed({ since }: { since: string }) {
 
     update()
     const timer = setInterval(update, 1000)
+
     return () => clearInterval(timer)
   }, [since])
 
@@ -40,29 +47,41 @@ export default function DashboardIndex() {
   const limit = 2
   const totalPages = Math.ceil(stats.total / limit)
 
-  const loadProjects = useCallback(async () => {
-    setLoading(true)
-    try {
-      const res = await api.get<ApiResponse<{ projects: Project[]; total: number; published: number; draft: number }>>(`/api/projects?page=${page}&limit=${limit}`)
-      if (res.success && res.data) {
-        setProjects(res.data.projects || [])
-        const d = res.data
-        setStats({
-          total: d.total,
-          published: d.published ?? 0,
-          draft: d.draft ?? 0,
-        })
+  useEffect(() => {
+    let cancelled = false
+
+    async function run() {
+      setLoading(true)
+
+      try {
+        const res = await api.get<ApiResponse<{ projects: Project[]; total: number; published: number; draft: number }>>(`/api/projects?page=${page}&limit=${limit}`)
+
+        if (!cancelled && res.success && res.data) {
+          setProjects(res.data.projects || [])
+          const d = res.data
+          setStats({
+            total: d.total,
+            published: d.published ?? 0,
+            draft: d.draft ?? 0,
+          })
+        }
+      } catch {
+        if (!cancelled) {
+          toast.error('Gagal memuat proyek')
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+        }
       }
-    } catch {
-      toast.error('Gagal memuat proyek')
-    } finally {
-      setLoading(false)
+    }
+
+    run()
+
+    return () => {
+      cancelled = true
     }
   }, [page, limit])
-
-  useEffect(() => {
-    loadProjects()
-  }, [loadProjects])
 
   return (
     <>
@@ -197,7 +216,11 @@ export default function DashboardIndex() {
                   const start = Math.max(1, Math.min(page - Math.floor(maxVisible / 2), totalPages - maxVisible + 1))
                   const end = Math.min(start + maxVisible - 1, totalPages)
                   const pages: number[] = []
-                  for (let i = start; i <= end; i++) pages.push(i)
+
+                  for (let i = start; i <= end; i++) {
+pages.push(i)
+}
+
                   return pages.map((p) => (
                     <button
                       key={p}

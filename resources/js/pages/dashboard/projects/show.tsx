@@ -1,36 +1,16 @@
-import { Head, router, usePage } from '@inertiajs/react'
+import { Head, usePage } from '@inertiajs/react'
+import {
+  ImageIcon, FileText, Archive, File, ExternalLink, Upload, Rocket,
+  Trash2, Pencil, Check, X, FolderKanban, Globe, FileEdit,
+  Clock, HardDrive, Loader2, Package, Settings,
+  Terminal, Cpu, Eye, EyeOff, Play,
+  ChevronLeft, ChevronRight
+} from 'lucide-react'
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import { formatBytes, formatDate } from '@/lib/utils'
 import type { Project, MediaFile, Deployment, ApiResponse } from '@/types/api'
-import {
-  ImageIcon, FileText, Archive, File, ExternalLink, Upload, Rocket,
-  Trash2, Pencil, Check, X, FolderKanban, Globe, FileEdit,
-  Clock, HardDrive, Loader2, Package, Settings,
-  Terminal, Cpu, Plus, Minus, Edit3, MessageSquare, Eye, EyeOff, Play,
-  ChevronLeft, ChevronRight
-} from 'lucide-react'
-
-function TimeElapsed({ since }: { since: string }) {
-  const [text, setText] = useState('')
-  useEffect(() => {
-    const start = new Date(since).getTime()
-    const update = () => {
-      const diff = Date.now() - start
-      if (diff < 0) { setText('Belum dimulai'); return }
-      const d = Math.floor(diff / 86400000)
-      const h = Math.floor((diff % 86400000) / 3600000)
-      const m = Math.floor((diff % 3600000) / 60000)
-      const s = Math.floor((diff % 60000) / 1000)
-      setText(`${d}d ${h}h ${m}m ${s}s`)
-    }
-    update()
-    const timer = setInterval(update, 1000)
-    return () => clearInterval(timer)
-  }, [since])
-  return <span>{text}</span>
-}
 
 const tabs = [
   { id: 'files', label: 'Files', icon: FolderKanban },
@@ -44,7 +24,7 @@ const tabs = [
 export default function ProjectShow() {
   const props = usePage().props as unknown as { project: { id: number } }
   const { project: initialProject } = props
-  const [id, setId] = useState<number>(initialProject?.id || 0)
+  const id = initialProject?.id || 0
 
   const [project, setProject] = useState<Project | null>(null)
   const [media, setMedia] = useState<MediaFile[]>([])
@@ -70,7 +50,7 @@ export default function ProjectShow() {
   const [savingConfig, setSavingConfig] = useState(false)
 
   const [tunnelStatus, setTunnelStatus] = useState<{ tunnel_id: string | null; status: string; status_label: string; healthy: boolean; connected: boolean } | null>(null)
-  const [tunnelToken, setTunnelToken] = useState('')
+  const [, setTunnelToken] = useState('')
   const [showTunnelRemove, setShowTunnelRemove] = useState(false)
   const [confirmTunnelMode, setConfirmTunnelMode] = useState<string | null>(null)
   const [removingTunnel, setRemovingTunnel] = useState(false)
@@ -104,6 +84,7 @@ export default function ProjectShow() {
   const loadProject = useCallback(async () => {
     try {
       const res = await api.get<ApiResponse<Project & { media: MediaFile[]; deployments: Deployment[] }>>(`/api/projects/${id}`)
+
       if (res.success && res.data) {
         setProject(res.data)
         setMedia(res.data.media || [])
@@ -127,11 +108,18 @@ export default function ProjectShow() {
     }
   }, [id])
 
-  useEffect(() => { if (id) loadProject() }, [id, loadProject])
+  useEffect(() => {
+ if (id) {
+loadProject()
+} 
+}, [id, loadProject])
 
   useEffect(() => {
     const maxPage = Math.ceil(media.length / fileLimit) || 1
-    if (filePage > maxPage) setFilePage(maxPage)
+
+    if (filePage > maxPage) {
+setFilePage(maxPage)
+}
   }, [media.length, filePage, fileLimit])
 
   useEffect(() => {
@@ -140,14 +128,17 @@ export default function ProjectShow() {
 
   const handleDeploy = async () => {
     setDeploying(true)
+
     try {
       const res = await api.post<ApiResponse<{ status: string }>>(`/api/projects/${id}/deploy`)
+
       if (res.success) {
         toast.success('Deploy started — container is spinning up')
         let attempts = 0
         const poll = setInterval(async () => {
           attempts++
           const updated = await api.get<ApiResponse<Project>>(`/api/projects/${id}`)
+
           if (updated.data?.container_status === 'running') {
             clearInterval(poll)
             toast.success('Container is running')
@@ -170,9 +161,11 @@ export default function ProjectShow() {
   const handleStopContainer = async () => {
     try {
       const res = await api.post<ApiResponse<void>>(`/api/projects/${id}/stop`)
+
       if (res.success) {
         toast.success('Container stopped')
       }
+
       loadProject()
     } catch (e: any) {
       toast.error(e?.message || 'Failed to stop container')
@@ -182,6 +175,7 @@ export default function ProjectShow() {
   const fetchTunnelStatus = useCallback(async () => {
     try {
       const res = await api.get<ApiResponse<{ tunnel_id: string | null; status: string; status_label: string; healthy: boolean; connected: boolean }>>(`/api/projects/${id}/tunnel/status`)
+
       if (res.success && res.data) {
         setTunnelStatus(res.data)
       }
@@ -193,11 +187,17 @@ export default function ProjectShow() {
   const handleSetupTunnel = async () => {
     try {
       const res = await api.post<ApiResponse<{ token: string; command: string }>>(`/api/projects/${id}/tunnel`)
+
       if (res.success && res.data) {
         toast.success('Tunnel configured')
-        if (res.data.token) setTunnelToken(res.data.token)
+
+        if (res.data.token) {
+setTunnelToken(res.data.token)
+}
+
         await navigator.clipboard.writeText(res.data.command)
       }
+
       loadProject()
       fetchTunnelStatus()
     } catch (e: any) {
@@ -207,11 +207,14 @@ export default function ProjectShow() {
 
   const handleDeleteTunnel = async (mode: string) => {
     setRemovingTunnel(true)
+
     try {
       const res = await api.post<ApiResponse<unknown>>(`/api/projects/${id}/tunnel/remove`, { mode })
+
       if (res.success) {
         toast.success(mode === 'all' ? 'Tunnel and DNS removed' : mode === 'dns' ? 'DNS tunnel removed' : 'Tunnel removed')
       }
+
       loadProject()
       fetchTunnelStatus()
     } catch (e: any) {
@@ -226,6 +229,7 @@ export default function ProjectShow() {
   const handleRunTunnel = async () => {
     try {
       const res = await api.post<ApiResponse<{ pid: string }>>(`/api/projects/${id}/tunnel/run`)
+
       if (res.success) {
         toast.success('Tunnel process started')
         setTimeout(fetchTunnelStatus, 3000)
@@ -238,6 +242,7 @@ export default function ProjectShow() {
   const handleCopyToken = async () => {
     try {
       const res = await api.get<ApiResponse<{ token: string }>>(`/api/projects/${id}/tunnel/token`)
+
       if (res.success && res.data?.token) {
         setTunnelToken(res.data.token)
         await navigator.clipboard.writeText("cloudflared tunnel run --token '" + res.data.token + "'")
@@ -249,18 +254,31 @@ export default function ProjectShow() {
   }
 
   useEffect(() => {
-    if (id) fetchTunnelStatus()
+    if (id) {
+fetchTunnelStatus()
+}
   }, [id, fetchTunnelStatus])
 
   const handleScan = async () => {
     setScanning(true)
+
     try {
       const res = await api.post<ApiResponse<{ framework: string; build_command: string | null; output_dir: string | null; internal_port: number }>>(`/api/projects/${id}/scan`)
+
       if (res.success && res.data) {
         setScannerResult(res.data)
-        if (res.data.build_command) setBuildCommand(res.data.build_command)
-        if (res.data.output_dir) setOutputDir(res.data.output_dir)
-        if (res.data.internal_port) setPort(res.data.internal_port)
+
+        if (res.data.build_command) {
+setBuildCommand(res.data.build_command)
+}
+
+        if (res.data.output_dir) {
+setOutputDir(res.data.output_dir)
+}
+
+        if (res.data.internal_port) {
+setPort(res.data.internal_port)
+}
       }
     } catch {
       toast.error('Failed to scan project')
@@ -271,6 +289,7 @@ export default function ProjectShow() {
 
   const handleSaveConfig = async () => {
     setSavingConfig(true)
+
     try {
       await api.patch<ApiResponse<void>>(`/api/projects/${id}/config`, {
         domain: domain || null,
@@ -304,7 +323,11 @@ export default function ProjectShow() {
       xhr.open('POST', `/api/projects/${id}/media`)
 
       const token = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content
-      if (token) xhr.setRequestHeader('X-CSRF-TOKEN', token)
+
+      if (token) {
+xhr.setRequestHeader('X-CSRF-TOKEN', token)
+}
+
       xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest')
       xhr.setRequestHeader('Accept', 'application/json')
 
@@ -321,13 +344,17 @@ export default function ProjectShow() {
           try {
             const resp = JSON.parse(xhr.responseText)
             resolve(resp)
-          } catch { resolve({ success: true } as any) }
+          } catch {
+ resolve({ success: true } as any) 
+}
         } else {
           let msg = `Upload failed (${xhr.status})`
+
           try {
             const resp = JSON.parse(xhr.responseText)
             msg = resp.message || msg
-          } catch {}
+          } catch { /* parse error, use default message */ }
+
           reject(new Error(msg))
         }
       }
@@ -338,7 +365,10 @@ export default function ProjectShow() {
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
-    if (!files || !files.length) return
+
+    if (!files || !files.length) {
+return
+}
 
     const totalBytes = Array.from(files).reduce((a, f) => a + f.size, 0)
     setProgress({
@@ -378,6 +408,7 @@ export default function ProjectShow() {
           progressRef.current.totalBytes = names.length
 
           const delay = names.length > 500 ? 5 : names.length > 100 ? 15 : 30
+
           for (let j = 0; j < names.length; j++) {
             setProgress(p => ({ ...p, fileIndex: j + 1, currentFile: names[j], loadedBytes: j + 1 }))
             setExtractedFiles(prev => [...prev, names[j]])
@@ -400,12 +431,19 @@ export default function ProjectShow() {
     setProgress(p => ({ ...p, active: false, extracting: false }))
     loadProject()
     setActiveTab('files')
-    if (fileInputRef.current) fileInputRef.current.value = ''
+
+    if (fileInputRef.current) {
+fileInputRef.current.value = ''
+}
   }
 
   const confirmFileDelete = async () => {
-    if (confirmDeleteFile === null) return
+    if (confirmDeleteFile === null) {
+return
+}
+
     setDeletingFile(true)
+
     try {
       await api.delete<ApiResponse<void>>(`/api/projects/${id}/media/${confirmDeleteFile}`)
       setConfirmDeleteFile(null)
@@ -418,8 +456,12 @@ export default function ProjectShow() {
   }
 
   const confirmDeleteSelectedFiles = async () => {
-    if (!confirmDeleteSelected?.length) return
+    if (!confirmDeleteSelected?.length) {
+return
+}
+
     setDeletingBatch(true)
+
     try {
       await Promise.all(confirmDeleteSelected.map(fid =>
         api.delete(`/api/projects/${id}/media/${fid}`)
@@ -436,6 +478,7 @@ export default function ProjectShow() {
 
   const confirmDeleteAllFiles = async () => {
     setDeletingBatch(true)
+
     try {
       await api.delete<ApiResponse<void>>(`/api/projects/${id}/media/all`)
       setConfirmDeleteAll(false)
@@ -460,16 +503,28 @@ export default function ProjectShow() {
   const fetchLogs = async () => {
     try {
       const res = await api.get<ApiResponse<{ logs: string }>>(`/api/projects/${id}/logs`)
-      if (res.success && res.data) setLogs(res.data.logs)
+
+      if (res.success && res.data) {
+setLogs(res.data.logs)
+}
     } catch {
       toast.error('Failed to fetch logs')
     }
   }
 
   function getFileIcon(mime: string) {
-    if (mime.startsWith('image/')) return <ImageIcon className="h-4 w-4 text-[var(--color-primary)]" />
-    if (mime.includes('zip') || mime.includes('rar')) return <Archive className="h-4 w-4 text-amber-400" />
-    if (mime.startsWith('text/') || mime.includes('json') || mime.includes('javascript')) return <FileText className="h-4 w-4 text-sky-400" />
+    if (mime.startsWith('image/')) {
+return <ImageIcon className="h-4 w-4 text-[var(--color-primary)]" />
+}
+
+    if (mime.includes('zip') || mime.includes('rar')) {
+return <Archive className="h-4 w-4 text-amber-400" />
+}
+
+    if (mime.startsWith('text/') || mime.includes('json') || mime.includes('javascript')) {
+return <FileText className="h-4 w-4 text-sky-400" />
+}
+
     return <File className="h-4 w-4 text-[var(--color-outline)]" />
   }
 
@@ -614,7 +669,9 @@ export default function ProjectShow() {
                             <div className="flex-1 min-w-0">
                               {renamingFile?.id === file.id ? (
                                 <form
-                                  onSubmit={(e) => { e.preventDefault(); handleRename(file.id, renamingFile.name) }}
+                                  onSubmit={(e) => {
+ e.preventDefault(); handleRename(file.id, renamingFile.name) 
+}}
                                   className="flex items-center gap-1"
                                 >
                                   <input
@@ -677,7 +734,11 @@ export default function ProjectShow() {
                             const start = Math.max(1, Math.min(filePage - Math.floor(maxVisible / 2), total - maxVisible + 1))
                             const end = Math.min(start + maxVisible - 1, total)
                             const pages: number[] = []
-                            for (let i = start; i <= end; i++) pages.push(i)
+
+                            for (let i = start; i <= end; i++) {
+pages.push(i)
+}
+
                             return pages.map((p) => (
                               <button
                                 key={p}
@@ -1114,7 +1175,9 @@ export default function ProjectShow() {
               <p className="text-xs text-[var(--color-danger)] mb-4">The project service will stop until redeployed.</p>
               <div className="flex justify-end gap-2">
                 <button onClick={() => setConfirmStop(false)} className="px-4 py-2 text-sm font-medium rounded-[var(--radius)] border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)] transition-all">Cancel</button>
-                <button onClick={async () => { setConfirmStop(false); await handleStopContainer() }} className="px-4 py-2 text-sm font-medium rounded-[var(--radius)] bg-[var(--color-error-container)] text-[var(--color-on-error-container)] hover:shadow-[0_0_20px_rgb(255,180,171,0.2)] transition-all">Stop</button>
+                <button onClick={async () => {
+ setConfirmStop(false); await handleStopContainer() 
+}} className="px-4 py-2 text-sm font-medium rounded-[var(--radius)] bg-[var(--color-error-container)] text-[var(--color-on-error-container)] hover:shadow-[0_0_20px_rgb(255,180,171,0.2)] transition-all">Stop</button>
               </div>
             </div>
           </div>
@@ -1148,7 +1211,9 @@ export default function ProjectShow() {
         )}
 
         {confirmTunnelMode && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => { setConfirmTunnelMode(null); setShowTunnelRemove(false) }}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => {
+ setConfirmTunnelMode(null); setShowTunnelRemove(false) 
+}}>
             <div className="bg-[var(--color-surface-container)] rounded-xl shadow-2xl p-6 max-w-sm w-full mx-4" onClick={e => e.stopPropagation()}>
               <h3 className="text-lg font-semibold mb-1 font-[var(--font-display)]">Confirm</h3>
               <p className="text-sm text-[var(--color-on-surface-variant)] mb-4">
@@ -1158,7 +1223,9 @@ export default function ProjectShow() {
               </p>
               <p className="text-xs text-[var(--color-danger)] mb-4">This action cannot be undone.</p>
               <div className="flex justify-end gap-2">
-                <button onClick={() => { setConfirmTunnelMode(null); setShowTunnelRemove(false) }} className="px-4 py-2 text-sm font-medium rounded-[var(--radius)] border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)] transition-all">Cancel</button>
+                <button onClick={() => {
+ setConfirmTunnelMode(null); setShowTunnelRemove(false) 
+}} className="px-4 py-2 text-sm font-medium rounded-[var(--radius)] border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)] transition-all">Cancel</button>
                 <button
                   disabled={removingTunnel}
                   onClick={() => handleDeleteTunnel(confirmTunnelMode)}

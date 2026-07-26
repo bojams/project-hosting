@@ -24,6 +24,7 @@ function renderMarkdown(text: string): string {
     if (url.startsWith('http')) {
       return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-[var(--color-primary)] hover:underline">${text}</a>`
     }
+
     return `<a href="${url}" class="text-[var(--color-primary)] hover:underline">${text}</a>`
   })
 
@@ -35,16 +36,26 @@ function renderMarkdown(text: string): string {
     const line = lines[i]
 
     if (line.trim() === '---') {
-      if (inList) { result.push('</ul>'); inList = false }
+      if (inList) {
+ result.push('</ul>'); inList = false 
+}
+
       result.push('<hr class="border-t border-[rgba(255,255,255,0.06)] my-6" />')
       continue
     }
 
     if (line.startsWith('| ') || line.startsWith('|---')) {
-      if (inList) { result.push('</ul>'); inList = false }
-      if (line.startsWith('|---')) continue
+      if (inList) {
+ result.push('</ul>'); inList = false 
+}
+
+      if (line.startsWith('|---')) {
+continue
+}
+
       const cells = line.split('|').filter(c => c.trim()).map(c => c.trim())
       const isHeader = lines[i + 1]?.startsWith('|---')
+
       if (isHeader) {
         result.push('<div class="overflow-x-auto my-3"><table class="w-full text-sm border-collapse"><thead><tr class="border-b border-[rgba(255,255,255,0.06)]">')
         result.push(cells.map(c => `<th class="text-left px-3 py-2 text-[var(--color-on-surface-variant)] font-medium">${c}</th>`).join(''))
@@ -52,9 +63,11 @@ function renderMarkdown(text: string): string {
       } else {
         result.push(`<tr class="border-b border-[rgba(255,255,255,0.04)]">${cells.map(c => `<td class="px-3 py-2 text-[var(--color-on-surface-variant)]">${c}</td>`).join('')}</tr>`)
       }
+
       if (!lines[i + 1] || !lines[i + 1].startsWith('|')) {
         result.push('</tbody></table></div>')
       }
+
       continue
     }
 
@@ -63,6 +76,7 @@ function renderMarkdown(text: string): string {
         result.push('<ul class="space-y-1 my-2">')
         inList = true
       }
+
       result.push(`<li class="text-sm text-[var(--color-on-surface-variant)] ml-4 list-disc">${line.slice(2)}</li>`)
       continue
     }
@@ -72,12 +86,16 @@ function renderMarkdown(text: string): string {
         result.push('<ol class="space-y-1 my-2">')
         inList = true
       }
+
       result.push(`<li class="text-sm text-[var(--color-on-surface-variant)] ml-4 list-decimal">${line.replace(/^\d+\.\s/, '')}</li>`)
       continue
     }
 
     if (line.startsWith('> ')) {
-      if (inList) { result.push('</ul>'); inList = false }
+      if (inList) {
+ result.push('</ul>'); inList = false 
+}
+
       result.push(`<blockquote class="border-l-2 border-[var(--color-primary)] pl-4 my-3 text-sm text-[var(--color-on-surface-variant)] italic">${line.slice(2)}</blockquote>`)
       continue
     }

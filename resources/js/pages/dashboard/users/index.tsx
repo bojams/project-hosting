@@ -1,9 +1,9 @@
 import { Head, router, usePage } from '@inertiajs/react'
-import { useEffect, useState, useCallback } from 'react'
+import { Trash2, Check, X } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import type { User, ApiResponse } from '@/types/api'
-import { Trash2, Check, X } from 'lucide-react'
 
 interface PaginatedUsers {
   current_page: number
@@ -21,37 +21,59 @@ export default function UsersIndex() {
   const [loading, setLoading] = useState(true)
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [filterStatus, setFilterStatus] = useState('')
-
-  const loadUsers = useCallback(async () => {
-    setLoading(true)
-    try {
-      const params = new URLSearchParams({ page: String(page) })
-      if (filterStatus) params.set('status', filterStatus)
-      const res = await api.get<ApiResponse<PaginatedUsers>>(`/api/users?${params}`)
-      if (res.success && res.data) {
-        setUsers(res.data.data || [])
-        setTotal(res.data.total)
-      }
-    } catch {
-      toast.error('Failed to load users')
-    } finally {
-      setLoading(false)
-    }
-  }, [page, filterStatus])
+  const [refreshKey, setRefreshKey] = useState(0)
 
   useEffect(() => {
-    if (!auth?.user) return
-    if (auth.user.role !== 'admin') {
-      router.visit('/dashboard')
+    if (!auth?.user) {
       return
     }
-    loadUsers()
-  }, [auth, loadUsers])
+
+    if (auth.user.role !== 'admin') {
+      router.visit('/dashboard')
+
+      return
+    }
+
+    let cancelled = false
+
+    async function run() {
+      setLoading(true)
+
+      try {
+        const params = new URLSearchParams({ page: String(page) })
+
+        if (filterStatus) {
+          params.set('status', filterStatus)
+        }
+
+        const res = await api.get<ApiResponse<PaginatedUsers>>(`/api/users?${params}`)
+
+        if (!cancelled && res.success && res.data) {
+          setUsers(res.data.data || [])
+          setTotal(res.data.total)
+        }
+      } catch {
+        if (!cancelled) {
+          toast.error('Failed to load users')
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+        }
+      }
+    }
+
+    run()
+
+    return () => {
+      cancelled = true
+    }
+  }, [auth, page, filterStatus, refreshKey])
 
   const changeRole = async (user: User, newRole: string) => {
     try {
       await api.patch(`/api/users/${user.id}/role`, { role: newRole })
-      loadUsers()
+      setRefreshKey(k => k + 1)
     } catch {
       toast.error('Failed to change role')
     }
@@ -60,7 +82,7 @@ export default function UsersIndex() {
   const handleApprove = async (user: User) => {
     try {
       await api.post(`/api/users/${user.id}/approve`)
-      loadUsers()
+      setRefreshKey(k => k + 1)
     } catch {
       toast.error('Failed to approve user')
     }
@@ -69,7 +91,7 @@ export default function UsersIndex() {
   const handleReject = async (user: User) => {
     try {
       await api.post(`/api/users/${user.id}/reject`)
-      loadUsers()
+      setRefreshKey(k => k + 1)
     } catch {
       toast.error('Failed to reject user')
     }
@@ -79,7 +101,7 @@ export default function UsersIndex() {
     try {
       await api.delete(`/api/users/${id}`)
       setDeletingId(null)
-      loadUsers()
+      setRefreshKey(k => k + 1)
     } catch {
       toast.error('Failed to delete user')
     }
@@ -114,7 +136,9 @@ export default function UsersIndex() {
           {['', 'pending', 'active', 'rejected'].map(s => (
             <button
               key={s}
-              onClick={() => { setFilterStatus(s); setPage(1) }}
+              onClick={() => {
+ setFilterStatus(s); setPage(1) 
+}}
               className={`px-3 py-1.5 text-xs font-mono uppercase tracking-wider rounded-[var(--radius)] border transition-all duration-200 ${
                 filterStatus === s
                   ? 'bg-[var(--color-primary)] text-[var(--color-on-primary)] border-[var(--color-primary)] font-semibold'

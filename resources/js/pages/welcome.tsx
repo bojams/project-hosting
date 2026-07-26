@@ -1,6 +1,6 @@
 import { Head, Link } from '@inertiajs/react'
-import { useState } from 'react'
 import { Upload, Eye, FolderKanban, Globe, Container, Cpu, Rocket, Settings, FileCode, Shield, ChevronDown } from 'lucide-react'
+import { useState } from 'react'
 
 const features = [
   {
@@ -221,6 +221,7 @@ export default function Welcome() {
                 {setupSteps.map((step, i) => {
                   const isOpen = openStep === i
                   const StepIcon = step.icon
+
                   return (
                     <div
                       key={i}

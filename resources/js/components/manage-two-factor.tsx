@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Form } from '@inertiajs/react';
 import { ShieldCheck } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
