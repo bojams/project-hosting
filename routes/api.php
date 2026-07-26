@@ -41,6 +41,7 @@ Route::prefix('api')->middleware('auth')->group(function () {
     Route::get('/projects/{project}/tunnel/token', [ProjectController::class, 'getTunnelToken']);
     Route::get('/projects/{project}/tunnel/status', [ProjectController::class, 'tunnelStatus']);
     Route::post('/projects/{project}/tunnel/run', [ProjectController::class, 'runTunnel']);
+    Route::post('/projects/{project}/tunnel/stop', [ProjectController::class, 'stopTunnel']);
 
     Route::get('/users', [UsersController::class, 'index']);
     Route::patch('/users/{user}/role', [UsersController::class, 'updateRole']);

@@ -158,6 +158,11 @@ class DockerDeployer
         exec("docker stop {$name} 2>/dev/null");
         exec("docker rm {$name} 2>/dev/null");
 
+        if ($project->container_id && $project->container_id !== $name) {
+            exec("docker stop {$project->container_id} 2>/dev/null");
+            exec("docker rm {$project->container_id} 2>/dev/null");
+        }
+
         $project->update([
             'container_id' => null,
             'container_status' => 'stopped',
@@ -190,10 +195,97 @@ class DockerDeployer
         return implode("\n", $output);
     }
 
+    private function ensureBootstrapFiles(string $sourcePath): void
+    {
+        if (! is_file("{$sourcePath}/bootstrap/app.php")) {
+            @mkdir("{$sourcePath}/bootstrap", 0755, true);
+            file_put_contents("{$sourcePath}/bootstrap/app.php", <<<'PHP'
+<?php
+
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
+
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__.'/../routes/web.php',
+        commands: __DIR__.'/../routes/console.php',
+        health: '/up',
+    )
+    ->withMiddleware(function (Middleware $middleware) {
+        //
+    })
+    ->withExceptions(function (Exceptions $exceptions) {
+        //
+    })->create();
+PHP
+            );
+        }
+
+        if (! is_file("{$sourcePath}/bootstrap/providers.php")) {
+            file_put_contents("{$sourcePath}/bootstrap/providers.php", <<<'PHP'
+<?php
+
+return [
+    //
+];
+PHP
+            );
+        }
+
+        if (! is_file("{$sourcePath}/routes/web.php")) {
+            @mkdir("{$sourcePath}/routes", 0755, true);
+            file_put_contents("{$sourcePath}/routes/web.php", <<<'PHP'
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+    return response('Hello from Hideo Hosting!');
+})->name('home');
+PHP
+            );
+        }
+
+        if (! is_file("{$sourcePath}/routes/console.php")) {
+            file_put_contents("{$sourcePath}/routes/console.php", <<<'PHP'
+<?php
+
+use Illuminate\Support\Facades\Schedule;
+PHP
+            );
+        }
+
+        if (! is_file("{$sourcePath}/public/index.php")) {
+            file_put_contents("{$sourcePath}/public/index.php", <<<'PHP'
+<?php
+
+use Illuminate\Http\Request;
+
+define('LARAVEL_START', microtime(true));
+
+if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {
+    require $maintenance;
+}
+
+require __DIR__.'/../vendor/autoload.php';
+
+(require_once __DIR__.'/../bootstrap/app.php')
+    ->handleRequest(Request::capture());
+PHP
+            );
+        }
+    }
+
     private function generateDockerfile(Project $project): string
     {
         $scanner = app(FrameworkScanner::class);
         $info = $scanner->scan($project->sourcePath());
+        $sourcePath = $project->sourcePath();
+
+        if ($info['language'] === 'php') {
+            $this->ensureBootstrapFiles($sourcePath);
+        }
 
         $baseImage = $info['docker_base_image'];
         $installCmd = $info['install_command'];
@@ -262,16 +354,6 @@ class DockerDeployer
         $df .= "RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer\n";
         $df .= "WORKDIR /var/www/html\n";
         $df .= "COPY . .\n";
-        $df .= "RUN if [ ! -f bootstrap/app.php ]; then \\\n";
-        $df .= "        mkdir -p bootstrap && \\\n";
-        $df .= "        printf '<?php\\n\\nuse Illuminate\\\\Foundation\\\\Application;\\nuse Illuminate\\\\Foundation\\\\Configuration\\\\Exceptions;\\nuse Illuminate\\\\Foundation\\\\Configuration\\\\Middleware;\\n\\nreturn Application::configure(basePath: dirname(__DIR__))\\n    ->withRouting(\\n        web: __DIR__.\"/../routes/web.php\",\\n        commands: __DIR__.\"/../routes/console.php\",\\n        health: \"/up\",\\n    )\\n    ->withMiddleware(function (Middleware \\$middleware) {\\n        //\\n    })\\n    ->withExceptions(function (Exceptions \\$exceptions) {\\n        //\\n    })->create();\\n' > bootstrap/app.php && \\\n";
-        $df .= "        printf '<?php\\n\\nreturn [\\n    //\\n];\\n' > bootstrap/providers.php; \\\n";
-        $df .= "    fi\n";
-        $df .= "RUN if [ ! -f routes/web.php ]; then \\\n";
-        $df .= "        mkdir -p routes && \\\n";
-        $df .= "        printf '<?php\\n\\nuse Illuminate\\\\Support\\\\Facades\\\\Route;\\n\\nRoute::get(\"/\", function () {\\n    return response(\\\"Hello from Hideo Hosting!\\\");\\n});\\n' > routes/web.php && \\\n";
-        $df .= "        printf '<?php\\n\\nuse Illuminate\\\\Support\\\\Facades\\\\Schedule;\\n' > routes/console.php; \\\n";
-        $df .= "    fi\n";
 
         if ($install) {
             $df .= "RUN {$install}\n";

@@ -27,6 +27,15 @@ class CloudflareTunnelService
         }
 
         if (! $project->cloudflare_tunnel_id) {
+            try {
+                $existingTunnels = $cf->listTunnels();
+                $existing = collect($existingTunnels['result'] ?? [])->firstWhere('name', $tunnelName);
+                if ($existing) {
+                    $cf->deleteTunnel($existing['id']);
+                }
+            } catch (\Throwable) {
+            }
+
             $secret = bin2hex(random_bytes(32));
             $result = $cf->createTunnel($tunnelName, $secret);
             $tunnelId = $result['result']['id'] ?? null;
@@ -91,10 +100,7 @@ class CloudflareTunnelService
         $wrapperScript = storage_path("logs/tunnel-{$project->id}.sh");
         $script = "#!/bin/sh\n";
         $script .= "TOKEN=\"\$(cat {$tokenFile})\"\n";
-        $script .= 'while true; do'."\n";
-        $script .= "  cloudflared tunnel run --token \"\${TOKEN}\" >> {$outputFile} 2>&1\n";
-        $script .= "  sleep 2\n";
-        $script .= "done &\n";
+        $script .= "cloudflared tunnel run --token \"\${TOKEN}\" >> {$outputFile} 2>&1 &\n";
         $script .= 'echo $! > '."{$pidFile}\n";
         $script .= "wait\n";
         file_put_contents($wrapperScript, $script);
@@ -112,25 +118,29 @@ class CloudflareTunnelService
         ];
     }
 
-    private function stopTunnelProcess(Project $project): void
+    public function stopTunnelProcess(Project $project): void
     {
         $pidFile = storage_path("logs/tunnel-{$project->id}.pid");
         $tokenFile = storage_path("logs/tunnel-{$project->id}.token");
         $wrapperScript = storage_path("logs/tunnel-{$project->id}.sh");
+        $outputFile = storage_path("logs/tunnel-{$project->id}.log");
+
+        @unlink($tokenFile);
 
         if (file_exists($pidFile)) {
             $oldPid = trim(file_get_contents($pidFile));
             if ($oldPid) {
+                exec("kill -9 -{$oldPid} 2>/dev/null");
                 exec("kill -9 {$oldPid} 2>/dev/null");
-                exec("kill -9 \$(pgrep -P {$oldPid}) 2>/dev/null");
             }
             @unlink($pidFile);
         }
 
+        exec("fuser -k {$outputFile} 2>/dev/null");
+
         exec("pkill -9 -f 'tunnel-{$project->id}\\.' 2>/dev/null");
 
         @unlink($wrapperScript);
-        @unlink($tokenFile);
     }
 
     public function getTunnelStatus(Project $project): array
@@ -156,6 +166,15 @@ class CloudflareTunnelService
             return $status;
         }
 
+        $pidFile = storage_path("logs/tunnel-{$project->id}.pid");
+        $processRunning = false;
+        if (file_exists($pidFile)) {
+            $pid = trim(file_get_contents($pidFile));
+            if ($pid) {
+                $processRunning = (bool) trim(exec("ps -p {$pid} -o pid= 2>/dev/null"));
+            }
+        }
+
         try {
             $result = $cf->getTunnel($project->cloudflare_tunnel_id);
             $tunnel = $result['result'] ?? [];
@@ -163,30 +182,35 @@ class CloudflareTunnelService
             $remoteStatus = $tunnel['status'] ?? 'unknown';
             $status['tunnel_id'] = $project->cloudflare_tunnel_id;
             $status['status'] = $remoteStatus;
-            $status['connected'] = $tunnel['connections'] && count($tunnel['connections']) > 0;
+            $status['connected'] = $processRunning && $tunnel['connections'] && count($tunnel['connections']) > 0;
 
-            switch ($remoteStatus) {
-                case 'healthy':
-                    $status['healthy'] = $status['connected'];
-                    $status['status_label'] = $status['connected'] ? 'Running' : 'Healthy (No conn)';
-                    break;
-                case 'degraded':
-                    $status['status_label'] = 'Degraded';
-                    break;
-                case 'down':
-                    $status['status_label'] = 'Down';
-                    break;
-                case 'inactive':
-                    $status['status_label'] = 'Inactive';
-                    break;
-                default:
-                    $status['status_label'] = ucfirst($remoteStatus);
-                    break;
+            if (! $processRunning) {
+                $status['status_label'] = 'Stopped';
+                $status['healthy'] = false;
+            } else {
+                switch ($remoteStatus) {
+                    case 'healthy':
+                        $status['healthy'] = $status['connected'];
+                        $status['status_label'] = $status['connected'] ? 'Running' : 'Healthy (No conn)';
+                        break;
+                    case 'degraded':
+                        $status['status_label'] = 'Degraded';
+                        break;
+                    case 'down':
+                        $status['status_label'] = 'Down';
+                        break;
+                    case 'inactive':
+                        $status['status_label'] = 'Inactive';
+                        break;
+                    default:
+                        $status['status_label'] = ucfirst($remoteStatus);
+                        break;
+                }
             }
         } catch (\Throwable $e) {
             $status['tunnel_id'] = $project->cloudflare_tunnel_id;
             $status['status'] = 'error';
-            $status['status_label'] = 'Check Failed';
+            $status['status_label'] = $processRunning ? 'Check Failed' : 'Stopped';
         }
 
         return $status;
@@ -217,10 +241,7 @@ class CloudflareTunnelService
         }
 
         if ($mode === 'all' || $mode === 'tunnel') {
-            try {
-                $cf->deleteTunnel($project->cloudflare_tunnel_id);
-            } catch (\Throwable) {
-            }
+            $cf->deleteTunnel($project->cloudflare_tunnel_id);
         }
 
         if ($mode === 'all') {

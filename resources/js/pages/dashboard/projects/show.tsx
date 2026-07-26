@@ -4,7 +4,7 @@ import {
   Trash2, Pencil, Check, X, FolderKanban, Globe, FileEdit,
   Clock, HardDrive, Loader2, Package, Settings,
   Terminal, Cpu, Eye, EyeOff, Play,
-  ChevronLeft, ChevronRight
+  ChevronLeft, ChevronRight, Square, ShieldAlert, CheckCircle, XCircle, RefreshCw
 } from 'lucide-react'
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { toast } from 'sonner'
@@ -53,6 +53,10 @@ export default function ProjectShow() {
   const [, setTunnelToken] = useState('')
   const [showTunnelRemove, setShowTunnelRemove] = useState(false)
   const [confirmTunnelMode, setConfirmTunnelMode] = useState<string | null>(null)
+
+  const [verifyingDomain, setVerifyingDomain] = useState(false)
+  const [verifyResult, setVerifyResult] = useState<{ status: string; server_ip: string; resolved_ips: string[]; domain: string; message: string; cname_target: string | null; auto_fixed: boolean } | null>(null)
+  const [showVerifyModal, setShowVerifyModal] = useState(false)
   const [removingTunnel, setRemovingTunnel] = useState(false)
 
   const [scannerResult, setScannerResult] = useState<{ framework: string; framework_version: string | null; build_command: string | null; output_dir: string | null; internal_port: number } | null>(null)
@@ -237,6 +241,41 @@ setTunnelToken(res.data.token)
       }
     } catch (e: any) {
       toast.error(e?.message || 'Failed to run tunnel')
+    }
+  }
+
+  const handleStopTunnel = async () => {
+    try {
+      const res = await api.post<ApiResponse<unknown>>(`/api/projects/${id}/tunnel/stop`)
+
+      if (res.success) {
+        toast.success('Tunnel process stopped')
+        fetchTunnelStatus()
+      }
+    } catch (e: any) {
+      toast.error(e?.message || 'Failed to stop tunnel')
+    }
+  }
+
+  const handleVerifyDomain = async () => {
+    if (!customDomain) {
+      toast.error('Set a custom domain first')
+      return
+    }
+
+    setVerifyingDomain(true)
+    try {
+      const res = await api.post<ApiResponse<{ status: string; server_ip: string; resolved_ips: string[]; domain: string; message: string; cname_target: string | null; auto_fixed: boolean }>>(`/api/projects/${id}/verify-domain`)
+
+      if (res.success && res.data) {
+        setVerifyResult(res.data)
+        setShowVerifyModal(true)
+        loadProject()
+      }
+    } catch (e: any) {
+      toast.error(e?.message || 'Failed to verify domain')
+    } finally {
+      setVerifyingDomain(false)
     }
   }
 
@@ -849,12 +888,37 @@ pages.push(i)
                       </div>
                       <div>
                         <label className="block text-xs text-[var(--color-on-surface-variant)] mb-1">Custom Domain</label>
-                        <input
-                          value={customDomain}
-                          onChange={(e) => setCustomDomain(e.target.value)}
-                          placeholder="example.com"
-                          className="w-full rounded-[var(--radius)] border border-[var(--color-outline-variant)] bg-[var(--color-bg-base)] text-[var(--color-on-surface)] placeholder-[var(--color-text-muted)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                        />
+                        <div className="flex gap-2">
+                          <input
+                            value={customDomain}
+                            onChange={(e) => setCustomDomain(e.target.value)}
+                            placeholder="example.com"
+                            className="flex-1 rounded-[var(--radius)] border border-[var(--color-outline-variant)] bg-[var(--color-bg-base)] text-[var(--color-on-surface)] placeholder-[var(--color-text-muted)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                          />
+                          <button
+                            onClick={handleVerifyDomain}
+                            disabled={verifyingDomain || !customDomain}
+                            className="inline-flex items-center justify-center gap-1 px-3 py-2 text-xs font-medium rounded-[var(--radius)] border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)] transition-all disabled:opacity-50 shrink-0"
+                          >
+                            {verifyingDomain ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ShieldAlert className="h-3.5 w-3.5" />}
+                            Verify
+                          </button>
+                        </div>
+                        {project?.domain_status && (
+                          <div className="mt-1.5 flex items-center gap-1.5">
+                            <span className={`h-1.5 w-1.5 rounded-full ${
+                              project.domain_status === 'active' ? 'bg-[var(--color-success)]' :
+                              project.domain_status === 'failed' ? 'bg-[var(--color-danger)]' :
+                              'bg-amber-400'
+                            }`} />
+                            <span className="text-xs text-[var(--color-on-surface-variant)] capitalize">
+                              {project.domain_status === 'active' ? 'Verified' :
+                               project.domain_status === 'failed' ? 'DNS mismatch' :
+                               project.domain_status === 'pending' ? 'Awaiting verification' :
+                               project.domain_status}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1183,18 +1247,21 @@ pages.push(i)
                       <span className={`h-2 w-2 rounded-full ${tunnelStatus.connected ? 'bg-[var(--color-success)]' : 'bg-amber-400'}`} />
                       <span className="text-sm text-[var(--color-on-surface)]">{tunnelStatus.status_label}</span>
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button onClick={handleCopyToken} className="px-3 py-1.5 text-xs font-medium rounded-[var(--radius)] border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)] transition-all">
-                        Copy Token
-                      </button>
+                    <div className="flex items-center gap-2">
                       <button onClick={handleRunTunnel} className="inline-flex items-center justify-center gap-1 px-3 py-1.5 text-xs font-medium rounded-[var(--radius)] bg-[var(--color-primary)] text-[var(--color-on-primary)] transition-all">
                         <Play className="h-3.5 w-3.5" /> Run
                       </button>
+                      <button onClick={handleStopTunnel} className="inline-flex items-center justify-center gap-1 px-3 py-1.5 text-xs font-medium rounded-[var(--radius)] border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)] transition-all">
+                        <Square className="h-3.5 w-3.5" /> Stop
+                      </button>
                       <button
                         onClick={() => setShowTunnelRemove(true)}
-                        className="inline-flex items-center justify-center gap-1 px-3 py-1.5 text-xs font-medium rounded-[var(--radius)] bg-[var(--color-error-container)] text-[var(--color-on-error-container)] transition-all col-start-2"
+                        className="inline-flex items-center justify-center gap-1 px-3 py-1.5 text-xs font-medium rounded-[var(--radius)] bg-[var(--color-error-container)] text-[var(--color-on-error-container)] transition-all"
                       >
-                        <X className="h-3.5 w-3.5" /> Remove
+                        <Trash2 className="h-3.5 w-3.5" /> Remove
+                      </button>
+                      <button onClick={handleCopyToken} className="ml-auto px-3 py-1.5 text-xs font-medium rounded-[var(--radius)] border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)] transition-all">
+                        Copy Token
                       </button>
                     </div>
                   </>
@@ -1371,6 +1438,94 @@ pages.push(i)
                 <button onClick={() => setConfirmDeleteAll(false)} disabled={deletingBatch} className="px-4 py-2 text-sm font-medium rounded-[var(--radius)] border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)] disabled:opacity-50 transition-all">Cancel</button>
                 <button disabled={deletingBatch} onClick={confirmDeleteAllFiles} className="px-4 py-2 text-sm font-medium rounded-[var(--radius)] bg-[var(--color-error-container)] text-[var(--color-on-error-container)] hover:shadow-[0_0_20px_rgb(255,180,171,0.2)] disabled:opacity-50 transition-all">
                   {deletingBatch ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Delete All'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showVerifyModal && verifyResult && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowVerifyModal(false)}>
+            <div className="bg-[var(--color-surface-container)] rounded-xl shadow-2xl p-6 max-w-md w-full mx-4 border border-[var(--color-border)]" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center gap-3 mb-4">
+                <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
+                  verifyResult.status === 'active' ? 'bg-[var(--color-success)]/20' : 'bg-[var(--color-error-container)]/20'
+                }`}>
+                  {verifyResult.status === 'active'
+                    ? <CheckCircle className="h-5 w-5 text-[var(--color-success)]" />
+                    : <XCircle className="h-5 w-5 text-[var(--color-danger)]" />
+                  }
+                </div>
+                <div>
+                  <h3 className="font-semibold font-[var(--font-display)]">
+                    {verifyResult.status === 'active' ? 'Domain Verified' : 'Domain Verification Failed'}
+                  </h3>
+                  <p className="text-sm text-[var(--color-on-surface-variant)]">{verifyResult.domain}</p>
+                </div>
+              </div>
+
+              {verifyResult.message && (
+                <p className={`text-sm mb-4 p-3 rounded-lg ${
+                  verifyResult.status === 'active' ? 'bg-[var(--color-success)]/10 text-[var(--color-success)]' : 'bg-[var(--color-error-container)]/20 text-[var(--color-on-surface)]'
+                }`}>
+                  {verifyResult.auto_fixed && <span className="font-semibold block mb-1">✓ DNS Auto-Configured</span>}
+                  {verifyResult.message}
+                </p>
+              )}
+
+              <div className="space-y-3 mb-6">
+                <div className="flex justify-between items-center p-3 rounded-lg bg-[var(--color-surface-container-high)]">
+                  <span className="text-sm text-[var(--color-on-surface-variant)]">Server IP</span>
+                  <code className="text-sm font-mono text-[var(--color-on-surface)]">{verifyResult.server_ip || 'Unknown'}</code>
+                </div>
+                <div className="flex justify-between items-center p-3 rounded-lg bg-[var(--color-surface-container-high)]">
+                  <span className="text-sm text-[var(--color-on-surface-variant)]">Status</span>
+                  <span className={`text-sm font-medium ${
+                    verifyResult.status === 'active' ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'
+                  }`}>
+                    {verifyResult.status === 'active' ? 'Verified' : verifyResult.status === 'failed' ? 'IP Mismatch' : 'Not Resolved'}
+                  </span>
+                </div>
+                {verifyResult.cname_target && (
+                  <div className="flex justify-between items-center p-3 rounded-lg bg-[var(--color-surface-container-high)]">
+                    <span className="text-sm text-[var(--color-on-surface-variant)]">CNAME Target</span>
+                    <code className="text-sm font-mono text-[var(--color-on-surface)] break-all text-right">{verifyResult.cname_target}</code>
+                  </div>
+                )}
+                <div className="p-3 rounded-lg bg-[var(--color-surface-container-high)]">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm text-[var(--color-on-surface-variant)]">A Records Found</span>
+                    <span className="text-sm font-mono text-[var(--color-on-surface)]">{verifyResult.resolved_ips.length}</span>
+                  </div>
+                  {verifyResult.resolved_ips.length > 0 ? (
+                    <div className="space-y-1">
+                      {verifyResult.resolved_ips.map((ip, i) => (
+                        <div key={i} className="flex items-center gap-2 text-xs">
+                          <code className="font-mono text-[var(--color-on-surface)]">{ip}</code>
+                          {ip === verifyResult.server_ip ? (
+                            <span className="text-[var(--color-success)] text-[10px] flex items-center gap-0.5">
+                              <CheckCircle className="h-3 w-3" /> match
+                            </span>
+                          ) : (
+                            <span className="text-[var(--color-danger)] text-[10px] flex items-center gap-0.5">
+                              <XCircle className="h-3 w-3" /> no match
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-[var(--color-on-surface-variant)]">No A records found. Add an A record pointing to the server IP above.</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setShowVerifyModal(false)}
+                  className="px-4 py-2 text-sm font-medium rounded-[var(--radius)] bg-[var(--color-primary)] text-[var(--color-on-primary)] transition-all"
+                >
+                  Close
                 </button>
               </div>
             </div>

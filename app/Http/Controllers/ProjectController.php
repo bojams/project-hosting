@@ -156,7 +156,24 @@ class ProjectController extends Controller
         } catch (\Throwable) {
         }
 
+        if ($project->cloudflare_tunnel_id) {
+            try {
+                app(CloudflareTunnelService::class)->teardownTunnel($project, 'all');
+            } catch (\Throwable) {
+            }
+        }
+
         $project->delete();
+
+        try {
+            $projects = Project::whereNotNull('port')
+                ->where('container_status', 'running')
+                ->get();
+            if ($projects->isNotEmpty()) {
+                app(DockerDeployer::class)->generateNginxConfigFor($projects);
+            }
+        } catch (\Throwable) {
+        }
 
         return response()->json([
             'success' => true,
@@ -301,13 +318,17 @@ class ProjectController extends Controller
             abort(404);
         }
 
-        $domain = $project->custom_domain;
-        if (! $domain) {
+        $baseDomain = $project->custom_domain;
+        if (! $baseDomain) {
             return response()->json([
                 'success' => false,
                 'message' => 'No custom domain set for this project',
             ], 422);
         }
+
+        $domain = $project->domain
+            ? "{$project->domain}.{$baseDomain}"
+            : $baseDomain;
 
         $serverIp = config('app.domain_ip') ?: env('APP_DOMAIN_IP');
         if (! $serverIp) {
@@ -318,12 +339,15 @@ class ProjectController extends Controller
             }
         }
 
-        $records = @dns_get_record($domain, DNS_A);
-        $matches = false;
+        $aRecords = @dns_get_record($domain, DNS_A);
+        $cnameRecords = @dns_get_record($domain, DNS_CNAME);
         $resolvedIps = [];
+        $cnameTarget = null;
+        $matches = false;
+        $message = null;
 
-        if ($records) {
-            foreach ($records as $record) {
+        if ($aRecords) {
+            foreach ($aRecords as $record) {
                 if (! empty($record['ip'])) {
                     $resolvedIps[] = $record['ip'];
                     if ($serverIp && $record['ip'] === $serverIp) {
@@ -333,7 +357,86 @@ class ProjectController extends Controller
             }
         }
 
-        $status = $matches ? 'active' : ($resolvedIps ? 'failed' : 'pending');
+        if ($cnameRecords) {
+            foreach ($cnameRecords as $record) {
+                if (! empty($record['target'])) {
+                    $cnameTarget = $record['target'];
+                }
+            }
+        }
+
+        $usingTunnel = $project->cloudflare_tunnel_id !== null;
+        $cloudflareIps = ['104.21.0.0/20', '172.67.0.0/20'];
+
+        $status = 'pending';
+        $onCloudflare = false;
+        if ($resolvedIps) {
+            foreach ($resolvedIps as $ip) {
+                foreach ($cloudflareIps as $cidr) {
+                    $range = explode('/', $cidr);
+                    $start = ip2long($range[0]);
+                    $mask = ~((1 << (32 - (int) $range[1])) - 1);
+                    $ipLong = ip2long($ip);
+                    if ($ipLong !== false && ($ipLong & $mask) === ($start & $mask)) {
+                        $onCloudflare = true;
+                        break 2;
+                    }
+                }
+            }
+        }
+
+        $autoFixed = false;
+        $needsFix = false;
+
+        if ($matches) {
+            $status = 'active';
+            $message = 'Domain resolves correctly to this server.';
+        } elseif ($onCloudflare && $usingTunnel) {
+            $status = 'active';
+            $message = 'Domain is proxied through Cloudflare via tunnel.';
+        } elseif ($cnameTarget) {
+            $status = 'active';
+            $message = 'Domain has a CNAME record.';
+        } elseif ($serverIp && (! $matches || ! $resolvedIps)) {
+            $needsFix = true;
+        }
+
+        if ($needsFix && $serverIp) {
+            try {
+                $cf = CloudflareService::forProject($project);
+            } catch (\Throwable) {
+                $cf = null;
+            }
+
+            if ($cf) {
+                try {
+                    $cf->ensureARecord($baseDomain, $serverIp, true);
+                    $cf->ensureARecord('*.'.$baseDomain, $serverIp, true);
+                    $cf->ensureARecord($domain, $serverIp, true);
+                    $autoFixed = true;
+                    $status = 'active';
+                    $message = 'DNS synced: '.$baseDomain.' & *.'.$baseDomain.' → '.$serverIp;
+                } catch (\Throwable $e) {
+                    $existingCname = @dns_get_record($domain, DNS_CNAME);
+                    if ($existingCname) {
+                        $status = 'active';
+                        $message = 'Domain uses CNAME (tunnel). A records not needed.';
+                    } else {
+                        $status = 'failed';
+                        $message = 'Failed to sync DNS: '.$e->getMessage();
+                    }
+                }
+            } else {
+                $status = 'failed';
+                $message = $resolvedIps
+                    ? 'Domain resolves to wrong IP(s). Add Cloudflare credentials in Config to auto-fix.'
+                    : 'No DNS records found. Add Cloudflare credentials in Config to auto-fix.';
+            }
+        } elseif ($needsFix && ! $serverIp) {
+            $status = 'failed';
+            $message = 'Could not determine this server\'s public IP.';
+        }
+
         $project->update(['domain_status' => $status]);
 
         $nextVersion = ($project->deployments()->max('version') ?? 0) + 1;
@@ -342,7 +445,7 @@ class ProjectController extends Controller
             'version' => $nextVersion,
             'status' => 'deployed',
             'description' => $status === 'active'
-                ? "Domain\n{$domain} verified → {$serverIp}"
+                ? "Domain\n{$domain} verified"
                 : "Domain\n{$domain} ({$status})",
             'changed_files' => [],
             'deployed_at' => now(),
@@ -355,6 +458,11 @@ class ProjectController extends Controller
                 'domain' => $domain,
                 'server_ip' => $serverIp,
                 'resolved_ips' => $resolvedIps,
+                'cname_target' => $cnameTarget,
+                'message' => $message,
+                'via_cloudflare' => $onCloudflare,
+                'using_tunnel' => $usingTunnel,
+                'auto_fixed' => $autoFixed,
             ],
         ]);
     }
@@ -441,6 +549,27 @@ class ProjectController extends Controller
                 'success' => true,
                 'message' => 'Tunnel started',
                 'data' => $result,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    public function stopTunnel(Request $request, Project $project): JsonResponse
+    {
+        if ($project->user_id !== $request->user()->id) {
+            abort(404);
+        }
+
+        try {
+            app(CloudflareTunnelService::class)->stopTunnelProcess($project);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Tunnel stopped',
             ]);
         } catch (\Throwable $e) {
             return response()->json([
