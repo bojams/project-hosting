@@ -1,6 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { LayoutDashboard, FolderKanban, Users, UserRound, BookOpen, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, Users, UserRound, LogOut, Menu, X } from 'lucide-react';
 
 interface DashboardLayoutProps {
     children: React.ReactNode;
@@ -53,10 +53,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <Link href="/dashboard/projects" onClick={closeSidebar} className={linkClass('/dashboard/projects')}>
                 <FolderKanban className={iconClass('/dashboard/projects')} />
                 Projects
-            </Link>
-            <Link href="/dashboard/docs" onClick={closeSidebar} className={linkClass('/dashboard/docs')}>
-                <BookOpen className={iconClass('/dashboard/docs')} />
-                Docs
             </Link>
             {user?.role === 'admin' && (
                 <Link href="/dashboard/directory" onClick={closeSidebar} className={linkClass('/dashboard/directory')}>

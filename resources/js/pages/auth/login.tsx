@@ -26,9 +26,9 @@ export default function Login({ status, canResetPassword }: Props) {
             <Form {...store.form()}>
                 {({ processing, errors }) => (
                     <>
-                        <div className="grid gap-4 sm:gap-6">
-                            <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+                        <div className="grid gap-3">
+                            <div className="grid gap-1.5">
+                                <Label htmlFor="email" className="text-xs">Email address</Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -38,17 +38,18 @@ export default function Login({ status, canResetPassword }: Props) {
                                     tabIndex={1}
                                     autoComplete="email"
                                     placeholder="email@example.com"
+                                    className="h-8 text-sm"
                                 />
                                 <InputError message={errors.email} />
                             </div>
 
-                            <div className="grid gap-2">
+                            <div className="grid gap-1.5">
                                 <div className="flex items-center">
-                                    <Label htmlFor="password">Password</Label>
+                                    <Label htmlFor="password" className="text-xs">Password</Label>
                                     {canResetPassword && (
                                         <TextLink
                                             href={request()}
-                                            className="ml-auto text-sm"
+                                            className="ml-auto text-xs"
                                             tabIndex={5}
                                         >
                                             Forgot your password?
@@ -62,22 +63,23 @@ export default function Login({ status, canResetPassword }: Props) {
                                     tabIndex={2}
                                     autoComplete="current-password"
                                     placeholder="Password"
+                                    className="h-8 text-sm"
                                 />
                                 <InputError message={errors.password} />
                             </div>
 
-                            <div className="flex items-center space-x-3">
+                            <div className="flex items-center space-x-2">
                                 <Checkbox
                                     id="remember"
                                     name="remember"
                                     tabIndex={3}
                                 />
-                                <Label htmlFor="remember">Remember me</Label>
+                                <Label htmlFor="remember" className="text-xs">Remember me</Label>
                             </div>
 
                             <Button
                                 type="submit"
-                                className="mt-2 sm:mt-4 w-full"
+                                className="mt-1 w-full h-8 text-sm"
                                 tabIndex={4}
                                 disabled={processing}
                                 data-test="login-button"
@@ -91,10 +93,17 @@ export default function Login({ status, canResetPassword }: Props) {
             </Form>
 
             {status && (
-                <div className="mb-4 text-center text-sm font-medium text-green-600">
+                <div className="mb-2 text-center text-xs font-medium text-green-600">
                     {status}
                 </div>
             )}
+
+            <p className="text-center text-xs text-muted-foreground mt-3">
+                Don't have an account?{' '}
+                <TextLink href={register()} tabIndex={5}>
+                    Register
+                </TextLink>
+            </p>
         </>
     );
 }

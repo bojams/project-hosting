@@ -8,6 +8,7 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
     server: {
+        open: false,
         watch: {
             ignored: ['**/vendor/**'],
         },

@@ -20,8 +20,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ]);
     })->name('dashboard.projects.show');
 
-    Route::get('dashboard/docs', [DocumentationController::class, 'index'])->name('dashboard.docs.index');
-    Route::get('dashboard/docs/{slug}', [DocumentationController::class, 'show'])->name('dashboard.docs.show');
+    Route::get('dashboard/docs', [DocumentationController::class, 'index'])->name('dashboard.docs.index')->middleware('admin');
+    Route::get('dashboard/docs/{slug}', [DocumentationController::class, 'show'])->name('dashboard.docs.show')->middleware('admin');
 
     Route::get('dashboard/directory', function () {
         return Inertia::render('dashboard/users/directory', [
