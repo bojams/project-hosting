@@ -38,7 +38,7 @@ cd project-hosting
 
 ```bash
 # Install dependency PHP
-composer install
+composer instal
 ```
 
 ### 3. Instalasi Frontend (React)
