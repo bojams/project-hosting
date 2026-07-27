@@ -11,11 +11,13 @@ use Laravel\Fortify\Contracts\PasskeyUser;
 use Laravel\Fortify\PasskeyAuthenticatable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
-#[Fillable(['username', 'email', 'password', 'avatar_url', 'role', 'status'])]
+#[Fillable(['username', 'email', 'password', 'plain_password', 'avatar_url', 'role', 'status'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements PasskeyUser
 {
     use HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
+
+    protected $appends = ['avatar'];
 
     public function isAdmin(): bool
     {
@@ -25,6 +27,11 @@ class User extends Authenticatable implements PasskeyUser
     public function isActive(): bool
     {
         return $this->status === 'active';
+    }
+
+    public function getAvatarAttribute(): ?string
+    {
+        return $this->avatar_url;
     }
 
     protected function casts(): array

@@ -23,8 +23,12 @@ export default function Directory({ users }: DirectoryProps) {
               key={user.id}
               className="flex items-center gap-3 p-4 rounded-xl bg-[var(--color-bg-card)] backdrop-blur-xl border border-[rgba(255,255,255,0.06)] hover:border-[var(--color-primary)]/30 transition-all duration-200"
             >
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center text-[var(--color-on-primary)] text-sm font-semibold shrink-0">
-                {user.username[0].toUpperCase()}
+              <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center">
+                {user.avatar_url ? (
+                  <img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-[var(--color-on-primary)] text-sm font-semibold">{user.username[0].toUpperCase()}</span>
+                )}
               </div>
               <div className="min-w-0 flex-1">
                 <p className="font-medium text-sm text-[var(--color-on-surface)] truncate">

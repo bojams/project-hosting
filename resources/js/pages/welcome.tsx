@@ -1,6 +1,20 @@
-import { Head, Link } from '@inertiajs/react'
-import { Upload, Eye, FolderKanban, Globe, Container, Cpu, Rocket, Settings, FileCode, Shield, ChevronDown } from 'lucide-react'
+import { Head, Link, router, usePage } from '@inertiajs/react'
+import { Upload, Eye, FolderKanban, Globe, Container, Cpu, Rocket, Settings, FileCode, Shield, ChevronDown, LayoutDashboard, LogOut } from 'lucide-react'
 import { useState } from 'react'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuGroup,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import BrandLogo from '@/components/brand-logo'
+import { useInitials } from '@/hooks/use-initials'
+import { dashboard, logout } from '@/routes'
+import { edit } from '@/routes/profile'
 
 const features = [
   {
@@ -104,6 +118,9 @@ const setupSteps = [
 
 export default function Welcome() {
   const [openStep, setOpenStep] = useState<number | null>(null)
+  const { auth } = usePage<{ auth: { user: { id: number; username: string; email: string; avatar?: string } | null } }>().props
+  const user = auth?.user
+  const getInitials = useInitials()
 
   return (
     <>
@@ -112,17 +129,53 @@ export default function Welcome() {
         {/* Header */}
         <header className="border-b border-[rgba(255,255,255,0.06)]">
           <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-10 sm:h-12">
-              <Link href="/" className="flex items-center gap-1.5 shrink-0">
-                <div className="w-6 h-6 sm:w-7 sm:h-7 rounded bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center">
-                  <span className="text-[var(--color-on-primary)] font-bold text-[10px] sm:text-xs font-[var(--font-display)]">H</span>
-                </div>
-                <span className="text-sm sm:text-base font-bold text-[var(--color-on-surface)] font-[var(--font-display)]">Hideo Hosting</span>
+            <div className="flex items-center justify-between h-15 sm:h-19">
+              <Link href="/" className="flex items-center gap-2 shrink-0">
+                <BrandLogo />
+                <span className="text-base sm:text-lg font-bold text-[var(--color-on-surface)] font-[var(--font-display)]">Hideo Hosting</span>
               </Link>
               <div className="flex items-center gap-1 sm:gap-2">
-                <Link href="/login" className="inline-flex items-center px-2.5 sm:px-4 py-1.5 text-xs sm:text-sm font-medium rounded bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:shadow-[0_0_16px_rgb(0,255,102,0.3)] transition-all">
-                  Masuk
-                </Link>
+                {user ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="flex items-center gap-2 rounded-full focus:outline-none">
+                        <Avatar className="h-8 w-8 sm:h-9 sm:w-9">
+                          <AvatarImage src={user.avatar} alt={user.username} />
+                          <AvatarFallback className="text-sm">{getInitials(user.username)}</AvatarFallback>
+                        </Avatar>
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuLabel>{user.username}</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuGroup>
+                        <DropdownMenuItem asChild>
+                          <Link href={dashboard()} prefetch className="cursor-pointer">
+                            <LayoutDashboard className="mr-2 h-4 w-4" />
+                            Dashboard
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href={edit()} prefetch className="cursor-pointer">
+                            <Settings className="mr-2 h-4 w-4" />
+                            Profile
+                          </Link>
+                        </DropdownMenuItem>
+                      </DropdownMenuGroup>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link href={logout()} method="post" as="button" className="cursor-pointer w-full">
+                          <LogOut className="mr-2 h-4 w-4" />
+                          Log out
+                        </Link>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <Link href="/login" className="inline-flex items-center px-2.5 sm:px-4 py-1.5 text-xs sm:text-sm font-medium rounded bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:shadow-[0_0_16px_rgb(0,255,102,0.3)] transition-all">
+                    Masuk
+                  </Link>
+                )}
               </div>
             </div>
           </div>
@@ -309,9 +362,7 @@ export default function Welcome() {
         <footer className="border-t border-[rgba(255,255,255,0.06)] py-4">
           <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
             <div className="flex items-center gap-1.5 text-xs text-[var(--color-outline)]">
-              <div className="w-4 h-4 rounded bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center">
-                <span className="text-[var(--color-on-primary)] font-bold text-[8px] font-[var(--font-display)]">H</span>
-              </div>
+              <BrandLogo className="w-4 h-4" />
               Hideo Hosting
             </div>
             <p className="text-[10px] text-[var(--color-outline)]">

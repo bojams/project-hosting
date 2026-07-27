@@ -8,13 +8,42 @@ use Illuminate\Http\Request;
 
 class UsersController extends Controller
 {
+    public function store(Request $request): JsonResponse
+    {
+        if ($request->user()->role !== 'admin') {
+            return response()->json(['success' => false, 'message' => 'Forbidden'], 403);
+        }
+
+        $validated = $request->validate([
+            'username' => 'required|string|max:255|unique:users,username',
+            'email' => 'required|email|max:255|unique:users,email',
+            'password' => 'required|string|min:8|max:100',
+            'role' => 'sometimes|in:user,admin,membership',
+        ]);
+
+        $user = User::create([
+            'username' => $validated['username'],
+            'email' => $validated['email'],
+            'password' => $validated['password'],
+            'plain_password' => $validated['password'],
+            'role' => $validated['role'] ?? 'user',
+            'status' => 'active',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User created successfully',
+            'data' => $user,
+        ]);
+    }
+
     public function index(Request $request): JsonResponse
     {
         if ($request->user()->role !== 'admin') {
             return response()->json(['success' => false, 'message' => 'Forbidden'], 403);
         }
 
-        $query = User::select('id', 'username', 'email', 'avatar_url', 'role', 'status', 'created_at', 'updated_at');
+        $query = User::select('id', 'username', 'email', 'plain_password', 'avatar_url', 'role', 'status', 'created_at', 'updated_at');
 
         if ($request->has('status')) {
             $query->where('status', $request->status);
@@ -97,7 +126,8 @@ class UsersController extends Controller
             $data['role'] = $validated['role'];
         }
         if (isset($validated['password'])) {
-            $data['password'] = bcrypt($validated['password']);
+            $data['password'] = $validated['password'];
+            $data['plain_password'] = $validated['password'];
         }
 
         $user->update($data);

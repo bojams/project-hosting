@@ -55,7 +55,7 @@ export default function ProjectShow() {
   const [confirmTunnelMode, setConfirmTunnelMode] = useState<string | null>(null)
 
   const [verifyingDomain, setVerifyingDomain] = useState(false)
-  const [verifyResult, setVerifyResult] = useState<{ status: string; server_ip: string; resolved_ips: string[]; domain: string; message: string; cname_target: string | null; auto_fixed: boolean } | null>(null)
+  const [verifyResult, setVerifyResult] = useState<{ status: string; server_ip: string; resolved_ips: string[]; domain: string; message: string; cname_target: string | null; auto_fixed: boolean; using_tunnel: boolean } | null>(null)
   const [showVerifyModal, setShowVerifyModal] = useState(false)
   const [removingTunnel, setRemovingTunnel] = useState(false)
 
@@ -148,6 +148,7 @@ setFilePage(maxPage)
             clearInterval(poll)
             toast.success('Container is running')
             setProject(updated.data)
+            fetchTunnelStatus()
           } else if (attempts > 30) {
             clearInterval(poll)
             loadProject()
@@ -169,6 +170,7 @@ setFilePage(maxPage)
 
       if (res.success) {
         toast.success('Container stopped')
+        fetchTunnelStatus()
       }
 
       loadProject()
@@ -454,7 +456,7 @@ return
           progressRef.current.loaded = 0
           progressRef.current.totalBytes = names.length
 
-          const delay = names.length > 500 ? 5 : names.length > 100 ? 15 : 30
+          const delay = names.length > 500 ? 4 : names.length > 100 ? 8 : 12
 
           for (let j = 0; j < names.length; j++) {
             setProgress(p => ({ ...p, fileIndex: j + 1, currentFile: names[j], loadedBytes: j + 1 }))
@@ -1215,7 +1217,7 @@ pages.push(i)
                   <a
                     href={project.custom_domain
                       ? `https://${project.domain ? project.domain + '.' : ''}${project.custom_domain}`
-                      : `/p/${project.slug}`
+                      : `https://${project.domain ? project.domain + '.' : ''}hideo.test`
                     }
                     target="_blank"
                     rel="noopener noreferrer"
@@ -1227,7 +1229,7 @@ pages.push(i)
                 <iframe
                   src={project.custom_domain
                     ? `https://${project.domain ? project.domain + '.' : ''}${project.custom_domain}`
-                    : `/p/${project.slug}`
+                    : `https://${project.domain ? project.domain + '.' : ''}hideo.test`
                   }
                   className="w-full h-96 border-0"
                   title="Preview"
@@ -1499,23 +1501,41 @@ pages.push(i)
                   </div>
                   {verifyResult.resolved_ips.length > 0 ? (
                     <div className="space-y-1">
-                      {verifyResult.resolved_ips.map((ip, i) => (
-                        <div key={i} className="flex items-center gap-2 text-xs">
-                          <code className="font-mono text-[var(--color-on-surface)]">{ip}</code>
-                          {ip === verifyResult.server_ip ? (
-                            <span className="text-[var(--color-success)] text-[10px] flex items-center gap-0.5">
-                              <CheckCircle className="h-3 w-3" /> match
+                      {verifyResult.resolved_ips.map((ip, i) => {
+                        const isMatch = ip === verifyResult.server_ip
+                        const isCloudflare = ip.startsWith('104.21.') || ip.startsWith('172.67.')
+                        let label: string
+                        let color: string
+                        let Icon: any
+                        if (isMatch) {
+                          label = 'match'
+                          color = 'var(--color-success)'
+                          Icon = CheckCircle
+                        } else if (isCloudflare && verifyResult.using_tunnel) {
+                          label = 'Cloudflare proxy'
+                          color = 'var(--color-primary)'
+                          Icon = CheckCircle
+                        } else if (isCloudflare) {
+                          label = 'Cloudflare (no tunnel)'
+                          color = 'var(--color-danger)'
+                          Icon = XCircle
+                        } else {
+                          label = 'no match'
+                          color = 'var(--color-danger)'
+                          Icon = XCircle
+                        }
+                        return (
+                          <div key={i} className="flex items-center gap-2 text-xs">
+                            <code className="font-mono text-[var(--color-on-surface)]">{ip}</code>
+                            <span className="text-[10px] flex items-center gap-0.5" style={{ color }}>
+                              <Icon className="h-3 w-3" /> {label}
                             </span>
-                          ) : (
-                            <span className="text-[var(--color-danger)] text-[10px] flex items-center gap-0.5">
-                              <XCircle className="h-3 w-3" /> no match
-                            </span>
-                          )}
-                        </div>
-                      ))}
+                          </div>
+                        )
+                      })}
                     </div>
                   ) : (
-                    <p className="text-xs text-[var(--color-on-surface-variant)]">No A records found. Add an A record pointing to the server IP above.</p>
+                    <p className="text-xs text-[var(--color-on-surface-variant)]">No A records found for this domain.</p>
                   )}
                 </div>
               </div>

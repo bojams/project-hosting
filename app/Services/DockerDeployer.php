@@ -88,6 +88,13 @@ class DockerDeployer
             'preview_path' => (string) $port,
         ]);
 
+        if ($project->cloudflare_tunnel_id) {
+            try {
+                app(CloudflareTunnelService::class)->runTunnel($project);
+            } catch (\Throwable) {
+            }
+        }
+
         $this->generateNginxConfig($project);
     }
 
@@ -161,6 +168,13 @@ class DockerDeployer
         if ($project->container_id && $project->container_id !== $name) {
             exec("docker stop {$project->container_id} 2>/dev/null");
             exec("docker rm {$project->container_id} 2>/dev/null");
+        }
+
+        if ($project->cloudflare_tunnel_id) {
+            try {
+                app(CloudflareTunnelService::class)->stopTunnelProcess($project);
+            } catch (\Throwable) {
+            }
         }
 
         $project->update([

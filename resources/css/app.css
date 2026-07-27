@@ -181,4 +181,7 @@ html, body, #app {
     body {
         @apply bg-background text-foreground;
     }
+    input[type="password"] {
+        font-family: Verdana, sans-serif;
+    }
 }

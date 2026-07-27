@@ -44,6 +44,7 @@ Route::prefix('api')->middleware('auth')->group(function () {
     Route::post('/projects/{project}/tunnel/stop', [ProjectController::class, 'stopTunnel']);
 
     Route::get('/users', [UsersController::class, 'index']);
+    Route::post('/users', [UsersController::class, 'store']);
     Route::patch('/users/{user}/role', [UsersController::class, 'updateRole']);
     Route::patch('/users/{user}', [UsersController::class, 'update']);
     Route::post('/users/{user}/approve', [UsersController::class, 'approve']);

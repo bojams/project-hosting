@@ -1,14 +1,20 @@
-import { Form, Head, usePage } from '@inertiajs/react';
+import { Form, Head, usePage, router } from '@inertiajs/react';
 import { Link } from '@inertiajs/react';
+import { Camera, Loader2 } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { toast } from 'sonner';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import DeleteUser from '@/components/delete-user';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { api } from '@/lib/api';
 import { edit } from '@/routes/profile';
 import { send } from '@/routes/verification';
+import { useInitials } from '@/hooks/use-initials';
 import type { Auth } from '@/types';
 
 type PageProps = {
@@ -23,6 +29,27 @@ export default function Profile({
     status?: string;
 }) {
     const { auth } = usePage<PageProps>().props;
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [uploading, setUploading] = useState(false);
+    const getInitials = useInitials();
+
+    const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setUploading(true);
+        try {
+            const formData = new FormData();
+            formData.append('avatar', file);
+            await api.post('/settings/profile/avatar', formData);
+            toast.success('Profile photo updated');
+            router.reload({ only: ['auth'] });
+        } catch (e) {
+            toast.error(e instanceof Error ? e.message : 'Failed to upload photo');
+        } finally {
+            setUploading(false);
+        }
+    };
 
     return (
         <>
@@ -36,6 +63,36 @@ export default function Profile({
                     title="Profile"
                     description="Update your name and email address"
                 />
+
+                <div className="flex items-center gap-4">
+                    <div className="relative">
+                        <Avatar className="h-16 w-16 overflow-hidden rounded-full">
+                            <AvatarImage src={auth.user.avatar} alt={auth.user.username} />
+                            <AvatarFallback className="rounded-full bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white text-lg">
+                                {getInitials(auth.user.username)}
+                            </AvatarFallback>
+                        </Avatar>
+                        <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={uploading}
+                            className="absolute -bottom-1 -right-1 flex items-center justify-center w-6 h-6 rounded-full bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:shadow-[0_0_12px_rgb(0,255,102,0.3)] transition-all"
+                        >
+                            {uploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Camera className="h-3 w-3" />}
+                        </button>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+                            className="hidden"
+                            onChange={handleAvatarUpload}
+                        />
+                    </div>
+                    <div>
+                        <p className="text-sm font-medium text-[var(--color-on-surface)]">{auth.user.username}</p>
+                        <p className="text-xs text-[var(--color-on-surface-variant)]">Click the camera icon to change photo</p>
+                    </div>
+                </div>
 
                 <Form
                     {...ProfileController.update.form()}
