@@ -81,13 +81,8 @@ export default function LoadingPage() {
       <div className="relative z-10 flex flex-col items-center">
         {/* Logo */}
         <div className="flex items-center justify-center">
-          <BrandLogo className="h-20 sm:h-24 w-auto drop-shadow-[0_0_40px_rgba(0,255,102,0.3)]" />
+          <BrandLogo className="h-24 sm:h-28 w-auto drop-shadow-[0_0_40px_rgba(0,255,102,0.3)]" />
         </div>
-
-        {/* Text */}
-        <h1 className="mt-4 sm:mt-5 text-xl sm:text-2xl font-bold text-[var(--color-on-surface)] font-[var(--font-display)]">
-          Hideo Hosting
-        </h1>
 
         {/* Loading dots */}
         <div className="mt-5 sm:mt-6 flex items-center gap-1.5">
