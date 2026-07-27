@@ -130,10 +130,11 @@ export default function Welcome() {
         <header className="border-b border-[rgba(255,255,255,0.06)]">
           <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-15 sm:h-19">
-              <Link href="/" className="flex items-center gap-2 shrink-0">
-                <BrandLogo />
-                <span className="text-base sm:text-lg font-bold text-[var(--color-on-surface)] font-[var(--font-display)]">Hideo Hosting</span>
-              </Link>
+              <div className="flex items-center shrink-0">
+                <Link href="/" className="block">
+                  <BrandLogo className="h-12 sm:h-14 w-auto" />
+                </Link>
+              </div>
               <div className="flex items-center gap-1 sm:gap-2">
                 {user ? (
                   <DropdownMenu>
@@ -359,13 +360,13 @@ export default function Welcome() {
         </main>
 
         {/* Footer */}
-        <footer className="border-t border-[rgba(255,255,255,0.06)] py-4">
-          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5 text-xs text-[var(--color-outline)]">
-              <BrandLogo className="w-4 h-4" />
-              Hideo Hosting
+        <footer className="border-t border-[rgba(255,255,255,0.06)] py-8 sm:py-10">
+          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2 text-sm sm:text-base text-[var(--color-outline)]">
+              <BrandLogo className="h-7 sm:h-8 w-auto" />
+              <span className="font-medium">Hideo Hosting</span>
             </div>
-            <p className="text-[10px] text-[var(--color-outline)]">
+            <p className="text-xs sm:text-sm text-[var(--color-outline)]">
               &copy; {new Date().getFullYear()} Hideo Hosting. All rights reserved.
             </p>
           </div>

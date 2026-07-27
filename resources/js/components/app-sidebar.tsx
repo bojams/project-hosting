@@ -1,6 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import { LayoutDashboard, FolderKanban, Users } from 'lucide-react';
-import AppLogo from '@/components/app-logo';
+import BrandLogo from '@/components/brand-logo';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import {
@@ -46,7 +46,7 @@ export function AppSidebar() {
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" className="group-data-[collapsible=icon]:!p-2" asChild>
                             <Link href="/" prefetch>
-                                <AppLogo />
+                                <BrandLogo className="h-10 w-auto shrink-0" />
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>

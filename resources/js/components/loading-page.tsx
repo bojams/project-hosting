@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import BrandLogo from '@/components/brand-logo'
 
 const matrixChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%^&*()_+-=[]{}|;:,.<>?/~`'
 
@@ -79,8 +80,8 @@ export default function LoadingPage() {
       {/* Center content */}
       <div className="relative z-10 flex flex-col items-center">
         {/* Logo */}
-        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center shadow-[0_0_40px_rgba(0,255,102,0.3)]">
-          <span className="text-[var(--color-on-primary)] font-bold text-3xl sm:text-4xl font-[var(--font-display)]">H</span>
+        <div className="flex items-center justify-center">
+          <BrandLogo className="h-20 sm:h-24 w-auto drop-shadow-[0_0_40px_rgba(0,255,102,0.3)]" />
         </div>
 
         {/* Text */}

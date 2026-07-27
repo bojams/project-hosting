@@ -1,4 +1,5 @@
 import { Head, Link, usePage } from '@inertiajs/react'
+import BrandLogo from '@/components/brand-logo'
 
 interface Props {
   status: number
@@ -26,8 +27,8 @@ export default function HttpError({ status }: Props) {
       <Head title={`${status} - ${info.title}`} />
       <div className="min-h-screen bg-[var(--color-bg-base)] flex items-center justify-center p-6">
         <div className="text-center max-w-md">
-          <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-secondary-container)] flex items-center justify-center">
-            <span className="text-[var(--color-on-primary)] font-bold text-2xl font-[var(--font-display)]">H</span>
+          <div className="mx-auto mb-6 flex items-center justify-center">
+            <BrandLogo className="h-20 sm:h-24 w-auto" />
           </div>
           <h1 className="text-6xl font-bold text-[var(--color-on-surface)] font-[var(--font-display)] mb-2">{status}</h1>
           <p className="text-xl text-[var(--color-on-surface-variant)] mb-1">{info.title}</p>
