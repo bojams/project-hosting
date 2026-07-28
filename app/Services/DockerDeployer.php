@@ -455,13 +455,28 @@ PHP
 
     private function findAvailablePort(): int
     {
-        for ($port = self::PORT_RANGE_START; $port <= self::PORT_RANGE_END; $port++) {
-            $conn = @fsockopen('127.0.0.1', $port, $errno, $errstr, 0.5);
-            if (! is_resource($conn)) {
-                return $port;
-            }
-            fclose($conn);
+        $lock = Cache::lock('port-allocation', 10);
+
+        if (! $lock->get()) {
+            throw new RuntimeException('Could not acquire port allocation lock. Try again.');
         }
+
+        try {
+            for ($port = self::PORT_RANGE_START; $port <= self::PORT_RANGE_END; $port++) {
+                $existing = Project::where('port', $port)->where('container_status', 'running')->exists();
+                if ($existing) {
+                    continue;
+                }
+                $conn = @fsockopen('127.0.0.1', $port, $errno, $errstr, 0.3);
+                if (! is_resource($conn)) {
+                    return $port;
+                }
+                fclose($conn);
+            }
+        } finally {
+            $lock->release();
+        }
+
         throw new RuntimeException('No available ports found');
     }
 
