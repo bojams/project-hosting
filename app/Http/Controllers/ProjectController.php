@@ -278,15 +278,24 @@ class ProjectController extends Controller
             'database_name' => 'nullable|string|max:100',
             'domain' => 'nullable|string|max:255|regex:/^[a-zA-Z0-9][a-zA-Z0-9.-]+$/',
             'custom_domain' => 'nullable|string|max:255|regex:/^[a-zA-Z0-9][a-zA-Z0-9.-]+\.[a-z]{2,}$/',
+            'cloudflare_api_token' => 'nullable|string|max:255',
+            'cloudflare_zone_id' => 'nullable|string|max:255',
+            'cloudflare_account_id' => 'nullable|string|max:255',
+            'cloudflare_tunnel_id' => 'nullable|string|max:255',
         ]);
 
         $serverIp = config('app.domain_ip');
         $oldCustomDomain = $project->custom_domain;
         $oldDomain = $project->domain;
 
-        foreach (['cloudflare_api_token', 'cloudflare_zone_id', 'cloudflare_account_id'] as $cfField) {
-            if (array_key_exists($cfField, $validated) && ($validated[$cfField] === null || $validated[$cfField] === '********')) {
-                unset($validated[$cfField]);
+        foreach (['cloudflare_api_token', 'cloudflare_zone_id', 'cloudflare_account_id', 'cloudflare_tunnel_id'] as $cfField) {
+            if (array_key_exists($cfField, $validated)) {
+                if ($validated[$cfField] === null || $validated[$cfField] === '********') {
+                    unset($validated[$cfField]);
+                } else {
+                    $project->{$cfField} = $validated[$cfField];
+                    unset($validated[$cfField]);
+                }
             }
         }
 
