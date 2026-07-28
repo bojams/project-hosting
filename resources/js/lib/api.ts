@@ -13,8 +13,8 @@ async function csrfToken(): Promise<string | null> {
     const meta = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]');
 
     if (meta) {
-return meta.content;
-}
+        return meta.content;
+    }
 
     try {
         const res = await fetch('/csrf-token');
@@ -29,7 +29,8 @@ return meta.content;
 async function request<T>(
     method: string,
     url: string,
-    body?: unknown
+    body?: unknown,
+    signal?: AbortSignal
 ): Promise<T> {
     const token = await csrfToken();
     const headers: Record<string, string> = {
@@ -50,8 +51,9 @@ async function request<T>(
     const res = await fetch(url, {
         method,
         headers,
-        body: isFormData ? body : body ? JSON.stringify(body) : undefined,
+        body: isFormData ? body : body !== undefined ? JSON.stringify(body) : undefined,
         credentials: 'same-origin',
+        signal,
     });
 
     if (!res.ok) {
@@ -73,9 +75,9 @@ async function request<T>(
 }
 
 export const api = {
-    get: <T>(url: string) => request<T>('GET', url),
-    post: <T>(url: string, body?: unknown) => request<T>('POST', url, body),
-    put: <T>(url: string, body?: unknown) => request<T>('PUT', url, body),
-    patch: <T>(url: string, body?: unknown) => request<T>('PATCH', url, body),
-    delete: <T>(url: string) => request<T>('DELETE', url),
+    get: <T>(url: string, signal?: AbortSignal) => request<T>('GET', url, undefined, signal),
+    post: <T>(url: string, body?: unknown, signal?: AbortSignal) => request<T>('POST', url, body, signal),
+    put: <T>(url: string, body?: unknown, signal?: AbortSignal) => request<T>('PUT', url, body, signal),
+    patch: <T>(url: string, body?: unknown, signal?: AbortSignal) => request<T>('PATCH', url, body, signal),
+    delete: <T>(url: string, signal?: AbortSignal) => request<T>('DELETE', url, undefined, signal),
 };

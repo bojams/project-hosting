@@ -15,8 +15,8 @@ class CloudflareService
 
     public function __construct(?string $apiToken = null, ?string $zoneId = null, ?string $accountId = null)
     {
-        $this->apiToken = $apiToken ?: config('services.cloudflare.api_token') ?: env('CLOUDFLARE_API_TOKEN');
-        $this->zoneId = $zoneId ?: config('services.cloudflare.zone_id') ?: env('CLOUDFLARE_ZONE_ID');
+        $this->apiToken = $apiToken ?: config('services.cloudflare.api_token');
+        $this->zoneId = $zoneId ?: config('services.cloudflare.zone_id');
         $this->accountId = $accountId;
 
         if (! $this->apiToken || ! $this->zoneId) {

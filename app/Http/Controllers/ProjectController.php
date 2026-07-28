@@ -11,6 +11,7 @@ use App\Services\CloudflareTunnelService;
 use App\Services\DockerDeployer;
 use App\Services\FrameworkScanner;
 use App\Services\SourceManager;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -22,13 +23,23 @@ class ProjectController extends Controller
         $query = Project::forUser($request->user()->id);
 
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            $allowedStatuses = ['published', 'draft', 'archived'];
+            if (in_array($request->status, $allowedStatuses)) {
+                $query->where('status', $request->status);
+            }
         }
 
         $projects = $query->orderBy('created_at', 'desc')
-            ->paginate($request->integer('limit', 20));
+            ->paginate(min($request->integer('limit', 20), 100));
 
         $userId = $request->user()->id;
+
+        $stats = Project::forUser($userId)
+            ->selectRaw('COUNT(*) as total')
+            ->selectRaw("SUM(CASE WHEN status = 'published' THEN 1 ELSE 0 END) as published")
+            ->selectRaw("SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END) as draft")
+            ->selectRaw("SUM(CASE WHEN status = 'archived' THEN 1 ELSE 0 END) as archived")
+            ->first();
 
         return response()->json([
             'success' => true,
@@ -37,9 +48,9 @@ class ProjectController extends Controller
                 'total' => $projects->total(),
                 'page' => $projects->currentPage(),
                 'limit' => $projects->perPage(),
-                'published' => Project::forUser($userId)->where('status', 'published')->count(),
-                'draft' => Project::forUser($userId)->where('status', 'draft')->count(),
-                'archived' => Project::forUser($userId)->where('status', 'archived')->count(),
+                'published' => (int) ($stats->published ?? 0),
+                'draft' => (int) ($stats->draft ?? 0),
+                'archived' => (int) ($stats->archived ?? 0),
             ],
         ]);
     }
@@ -51,14 +62,27 @@ class ProjectController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        $slug = $this->generateUniqueSlug($validated['name']);
+        $maxAttempts = 5;
+        $attempt = 0;
 
-        $project = Project::create([
-            'user_id' => $request->user()->id,
-            'name' => $validated['name'],
-            'slug' => $slug,
-            'description' => $validated['description'] ?? null,
-        ]);
+        do {
+            $slug = $this->generateUniqueSlug($validated['name']);
+            $attempt++;
+
+            try {
+                $project = Project::create([
+                    'user_id' => $request->user()->id,
+                    'name' => $validated['name'],
+                    'slug' => $slug,
+                    'description' => $validated['description'] ?? null,
+                ]);
+                break;
+            } catch (QueryException $e) {
+                if ($attempt >= $maxAttempts || $e->getCode() !== '23000') {
+                    throw $e;
+                }
+            }
+        } while (true);
 
         try {
             $destPath = $project->sourcePath();
@@ -252,15 +276,11 @@ class ProjectController extends Controller
             'port_auto' => 'boolean',
             'database_type' => 'nullable|in:mysql,sqlite,postgresql',
             'database_name' => 'nullable|string|max:100',
-            'domain' => 'nullable|string|max:255',
-            'custom_domain' => 'nullable|string|max:255',
-            'cloudflare_api_token' => 'nullable|string|max:255',
-            'cloudflare_zone_id' => 'nullable|string|max:255',
-            'cloudflare_account_id' => 'nullable|string|max:255',
-            'cloudflare_tunnel_id' => 'nullable|string|max:255',
+            'domain' => 'nullable|string|max:255|regex:/^[a-zA-Z0-9][a-zA-Z0-9.-]+$/',
+            'custom_domain' => 'nullable|string|max:255|regex:/^[a-zA-Z0-9][a-zA-Z0-9.-]+\.[a-z]{2,}$/',
         ]);
 
-        $serverIp = config('app.domain_ip') ?: env('APP_DOMAIN_IP');
+        $serverIp = config('app.domain_ip');
         $oldCustomDomain = $project->custom_domain;
         $oldDomain = $project->domain;
 
@@ -330,7 +350,7 @@ class ProjectController extends Controller
             ? "{$project->domain}.{$baseDomain}"
             : $baseDomain;
 
-        $serverIp = config('app.domain_ip') ?: env('APP_DOMAIN_IP');
+        $serverIp = config('app.domain_ip');
         if (! $serverIp) {
             $resp = @file_get_contents('https://api.ipify.org?format=json', false, stream_context_create(['http' => ['timeout' => 3]]));
             if ($resp) {

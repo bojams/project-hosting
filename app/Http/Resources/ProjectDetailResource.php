@@ -35,9 +35,9 @@ class ProjectDetailResource extends JsonResource
             'database_name' => $this->database_name,
             'container_id' => $this->container_id,
             'container_status' => $this->container_status,
-            'cloudflare_api_token' => $this->cloudflare_api_token,
-            'cloudflare_zone_id' => $this->cloudflare_zone_id,
-            'cloudflare_account_id' => $this->cloudflare_account_id,
+            'cloudflare_api_token' => $this->cloudflare_api_token ? '********' : null,
+            'cloudflare_zone_id' => $this->cloudflare_zone_id ? '********' : null,
+            'cloudflare_account_id' => $this->cloudflare_account_id ? '********' : null,
             'cloudflare_tunnel_id' => $this->cloudflare_tunnel_id,
             'media' => $mediaItems->map(fn (Media $m) => [
                 'id' => $m->id,

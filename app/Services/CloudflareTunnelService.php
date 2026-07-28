@@ -63,15 +63,11 @@ class CloudflareTunnelService
 
         $this->runTunnel($project);
 
-        $token = $cf->getTunnelToken($project->cloudflare_tunnel_id);
-
         return [
             'tunnel_id' => $project->cloudflare_tunnel_id,
             'tunnel_name' => $tunnelName,
-            'token' => $token,
             'route_domain' => $routeDomain,
             'service' => $service,
-            'command' => "cloudflared tunnel run --token '{$token}'",
         ];
     }
 
@@ -92,25 +88,8 @@ class CloudflareTunnelService
 
         $outputFile = storage_path("logs/tunnel-{$project->id}.log");
         $pidFile = storage_path("logs/tunnel-{$project->id}.pid");
-        $tokenFile = storage_path("logs/tunnel-{$project->id}.token");
 
-        file_put_contents($tokenFile, $token);
-        chmod($tokenFile, 0600);
-
-        $wrapperScript = storage_path("logs/tunnel-{$project->id}.sh");
-        $script = "#!/bin/sh\n";
-        $script .= "TOKEN=\"\$(cat {$tokenFile})\"\n";
-        $script .= "cloudflared tunnel run --token \"\${TOKEN}\" >> {$outputFile} 2>&1 &\n";
-        $script .= 'echo $! > '."{$pidFile}\n";
-        $script .= "wait\n";
-        file_put_contents($wrapperScript, $script);
-        chmod($wrapperScript, 0755);
-
-        $fullCommand = "nohup {$wrapperScript} > /dev/null 2>&1 &";
-        exec($fullCommand);
-
-        usleep(500000);
-        $pid = @file_get_contents($pidFile);
+        $pid = $this->startTunnelProcess($token, $outputFile, $pidFile);
 
         return [
             'pid' => trim($pid ?: 'unknown'),
@@ -118,29 +97,40 @@ class CloudflareTunnelService
         ];
     }
 
+    private function startTunnelProcess(string $token, string $outputFile, string $pidFile): string
+    {
+        $escapedToken = escapeshellarg($token);
+        $escapedOutput = escapeshellarg($outputFile);
+        $escapedPidFile = escapeshellarg($pidFile);
+
+        $fullCommand = "nohup cloudflared tunnel run --token {$escapedToken} >> {$escapedOutput} 2>&1 & echo $! > {$escapedPidFile}";
+        exec($fullCommand);
+
+        usleep(500000);
+        $pid = @file_get_contents($pidFile);
+
+        return trim($pid ?: 'unknown');
+    }
+
     public function stopTunnelProcess(Project $project): void
     {
         $pidFile = storage_path("logs/tunnel-{$project->id}.pid");
-        $tokenFile = storage_path("logs/tunnel-{$project->id}.token");
-        $wrapperScript = storage_path("logs/tunnel-{$project->id}.sh");
         $outputFile = storage_path("logs/tunnel-{$project->id}.log");
-
-        @unlink($tokenFile);
 
         if (file_exists($pidFile)) {
             $oldPid = trim(file_get_contents($pidFile));
-            if ($oldPid) {
-                exec("kill -9 -{$oldPid} 2>/dev/null");
-                exec("kill -9 {$oldPid} 2>/dev/null");
+            if ($oldPid && ctype_digit($oldPid)) {
+                $intPid = (int) $oldPid;
+                exec("kill -9 {$intPid} 2>/dev/null");
             }
             @unlink($pidFile);
         }
 
-        exec("fuser -k {$outputFile} 2>/dev/null");
+        $escapedOutput = escapeshellarg($outputFile);
+        exec("fuser -k {$escapedOutput} 2>/dev/null");
 
-        exec("pkill -9 -f 'tunnel-{$project->id}\\.' 2>/dev/null");
-
-        @unlink($wrapperScript);
+        $escapedPattern = escapeshellarg("tunnel-{$project->id}.");
+        exec("pkill -9 -f {$escapedPattern} 2>/dev/null");
     }
 
     public function getTunnelStatus(Project $project): array
@@ -170,8 +160,8 @@ class CloudflareTunnelService
         $processRunning = false;
         if (file_exists($pidFile)) {
             $pid = trim(file_get_contents($pidFile));
-            if ($pid) {
-                $processRunning = (bool) trim(exec("ps -p {$pid} -o pid= 2>/dev/null"));
+            if ($pid && ctype_digit($pid)) {
+                $processRunning = (bool) trim(exec('ps -p '.(int) $pid.' -o pid= 2>/dev/null'));
             }
         }
 

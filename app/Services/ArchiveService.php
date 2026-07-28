@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Project;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Log;
 use ZipArchive;
 
 class ArchiveService
@@ -37,7 +38,51 @@ class ArchiveService
             mkdir($tempDir, 0755, true);
         }
 
-        $zip->extractTo($tempDir);
+        $baseDir = realpath($tempDir);
+        if ($baseDir === false) {
+            $zip->close();
+
+            return [];
+        }
+
+        for ($i = 0; $i < $zip->numEntries; $i++) {
+            $entryName = $zip->getNameIndex($i);
+            if ($entryName === false) {
+                continue;
+            }
+
+            $normalized = str_replace('\\', '/', $entryName);
+
+            if (str_contains($normalized, '..') || str_starts_with($normalized, '/')) {
+                $zip->close();
+                $this->deleteDirectory($tempDir);
+                Log::warning('Zip slip detected', ['entry' => $normalized, 'project' => $project->id]);
+
+                return [];
+            }
+
+            $destPath = $baseDir.'/'.$normalized;
+            $destReal = realpath(dirname($destPath));
+            if ($destReal === false || ! str_starts_with($destReal, $baseDir)) {
+                $zip->close();
+                $this->deleteDirectory($tempDir);
+                Log::warning('Zip slip detected (resolved path)', ['entry' => $normalized, 'project' => $project->id]);
+
+                return [];
+            }
+
+            if (substr($entryName, -1) === '/') {
+                if (! is_dir($destPath)) {
+                    mkdir($destPath, 0755, true);
+                }
+            } else {
+                if (! is_dir(dirname($destPath))) {
+                    mkdir(dirname($destPath), 0755, true);
+                }
+                copy("zip://{$path}#{$entryName}", $destPath);
+            }
+        }
+
         $zip->close();
 
         return $this->uploadExtracted($project, $tempDir);
@@ -60,7 +105,43 @@ class ArchiveService
             return [];
         }
 
+        $baseDir = realpath($tempDir);
+        if ($baseDir === false) {
+            $this->deleteDirectory($tempDir);
+
+            return [];
+        }
+
+        $violations = $this->checkDirectoryTraversal($baseDir, $baseDir);
+        if (! empty($violations)) {
+            $this->deleteDirectory($tempDir);
+            Log::warning('Zip slip detected in RAR extraction', ['entries' => $violations, 'project' => $project->id]);
+
+            return [];
+        }
+
         return $this->uploadExtracted($project, $tempDir);
+    }
+
+    private function checkDirectoryTraversal(string $baseDir, string $dir): array
+    {
+        $violations = [];
+        $items = scandir($dir);
+        foreach ($items as $item) {
+            if ($item === '.' || $item === '..') {
+                continue;
+            }
+            $path = $dir.'/'.$item;
+            $real = realpath($path);
+            if ($real === false || ! str_starts_with($real, $baseDir)) {
+                $violations[] = substr($path, strlen($baseDir) + 1);
+            }
+            if (is_dir($path)) {
+                $violations = array_merge($violations, $this->checkDirectoryTraversal($baseDir, $path));
+            }
+        }
+
+        return $violations;
     }
 
     private function uploadExtracted(Project $project, string $dir): array

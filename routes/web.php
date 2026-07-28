@@ -5,10 +5,6 @@ use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/csrf-token', function () {
-    return response()->json(['token' => csrf_token()]);
-});
-
 Route::inertia('/', 'welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {

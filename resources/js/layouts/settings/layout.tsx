@@ -39,6 +39,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                     >
                         {sidebarNavItems.map((item, index) => {
                             const active = isCurrentOrParentUrl(item.href);
+
                             return (
                                 <Link
                                     key={`${item.href}-${index}`}

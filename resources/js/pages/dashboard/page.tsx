@@ -48,15 +48,15 @@ export default function DashboardIndex() {
   const totalPages = Math.ceil(stats.total / limit)
 
   useEffect(() => {
-    let cancelled = false
+    const abortController = new AbortController()
 
     async function run() {
       setLoading(true)
 
       try {
-        const res = await api.get<ApiResponse<{ projects: Project[]; total: number; published: number; draft: number }>>(`/api/projects?page=${page}&limit=${limit}`)
+        const res = await api.get<ApiResponse<{ projects: Project[]; total: number; published: number; draft: number }>>(`/api/projects?page=${page}&limit=${limit}`, abortController.signal)
 
-        if (!cancelled && res.success && res.data) {
+        if (res.success && res.data) {
           setProjects(res.data.projects || [])
           const d = res.data
           setStats({
@@ -66,11 +66,11 @@ export default function DashboardIndex() {
           })
         }
       } catch {
-        if (!cancelled) {
+        if (!abortController.signal.aborted) {
           toast.error('Gagal memuat proyek')
         }
       } finally {
-        if (!cancelled) {
+        if (!abortController.signal.aborted) {
           setLoading(false)
         }
       }
@@ -79,7 +79,7 @@ export default function DashboardIndex() {
     run()
 
     return () => {
-      cancelled = true
+      abortController.abort()
     }
   }, [page, limit])
 

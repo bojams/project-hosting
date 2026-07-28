@@ -25,7 +25,6 @@ class UsersController extends Controller
             'username' => $validated['username'],
             'email' => $validated['email'],
             'password' => $validated['password'],
-            'plain_password' => $validated['password'],
             'role' => $validated['role'] ?? 'user',
             'status' => 'active',
         ]);
@@ -43,10 +42,13 @@ class UsersController extends Controller
             return response()->json(['success' => false, 'message' => 'Forbidden'], 403);
         }
 
-        $query = User::select('id', 'username', 'email', 'plain_password', 'avatar_url', 'role', 'status', 'created_at', 'updated_at');
+        $query = User::select('id', 'username', 'email', 'avatar_url', 'role', 'status', 'created_at', 'updated_at');
 
         if ($request->has('status')) {
-            $query->where('status', $request->status);
+            $allowedStatuses = ['active', 'pending', 'rejected'];
+            if (in_array($request->status, $allowedStatuses)) {
+                $query->where('status', $request->status);
+            }
         }
 
         $users = $query->orderBy('created_at', 'desc')->paginate(20);
@@ -127,7 +129,6 @@ class UsersController extends Controller
         }
         if (isset($validated['password'])) {
             $data['password'] = $validated['password'];
-            $data['plain_password'] = $validated['password'];
         }
 
         $user->update($data);

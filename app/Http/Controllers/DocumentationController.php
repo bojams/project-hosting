@@ -2,14 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class DocumentationController extends Controller
 {
+    private const ALLOWED_SLUG_REGEX = '/^[a-zA-Z0-9_-]+$/';
+
+    private const DOCS_DIR = 'app/docs';
+
     public function index(): Response
     {
-        $docsPath = storage_path('app/docs');
+        $docsPath = storage_path(self::DOCS_DIR);
         $files = glob("{$docsPath}/*.md");
         $guides = [];
 
@@ -19,9 +24,9 @@ class DocumentationController extends Controller
                 continue;
             }
             $content = file_get_contents($file);
-            $title = str($content)->match('/^#\s+(.+)/m')->toString() ?: $slug;
-            $excerpt = str($content)->match('/##\s+(.+)/m')->toString() ?: '';
-            $body = str($content)->after('---')->before('---')->trim()->toString() ?: '';
+            $title = Str::of($content)->match('/^#\s+(.+)/m')->toString() ?: $slug;
+            $excerpt = Str::of($content)->match('/##\s+(.+)/m')->toString() ?: '';
+            $body = Str::of($content)->after('---')->before('---')->trim()->toString() ?: '';
             $guides[] = compact('slug', 'title', 'excerpt', 'body');
         }
 
@@ -35,9 +40,26 @@ class DocumentationController extends Controller
 
     public function show(string $slug): Response
     {
-        $path = storage_path("app/docs/{$slug}.md");
+        $slug = $this->sanitizeSlug($slug);
 
-        if (! file_exists($path)) {
+        if ($slug === null) {
+            abort(404);
+        }
+
+        $docsPath = storage_path(self::DOCS_DIR);
+        $realDocsPath = realpath($docsPath);
+
+        if ($realDocsPath === false) {
+            abort(404);
+        }
+
+        $path = realpath("{$realDocsPath}/{$slug}.md");
+
+        if ($path === false || ! str_starts_with($path, $realDocsPath)) {
+            abort(404);
+        }
+
+        if (! file_exists($path) || ! is_file($path)) {
             abort(404);
         }
 
@@ -47,5 +69,24 @@ class DocumentationController extends Controller
             'slug' => $slug,
             'content' => $content,
         ]);
+    }
+
+    private function sanitizeSlug(string $slug): ?string
+    {
+        if (str_contains($slug, "\0")) {
+            return null;
+        }
+
+        $slug = urldecode($slug);
+
+        if (str_contains($slug, '/') || str_contains($slug, '\\') || str_contains($slug, '..')) {
+            return null;
+        }
+
+        if (! preg_match(self::ALLOWED_SLUG_REGEX, $slug)) {
+            return null;
+        }
+
+        return $slug;
     }
 }

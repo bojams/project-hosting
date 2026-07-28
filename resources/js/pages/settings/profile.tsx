@@ -11,10 +11,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useInitials } from '@/hooks/use-initials';
 import { api } from '@/lib/api';
 import { edit } from '@/routes/profile';
 import { send } from '@/routes/verification';
-import { useInitials } from '@/hooks/use-initials';
 import type { Auth } from '@/types';
 
 type PageProps = {
@@ -35,9 +35,13 @@ export default function Profile({
 
     const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (!file) return;
+
+        if (!file) {
+return;
+}
 
         setUploading(true);
+
         try {
             const formData = new FormData();
             formData.append('avatar', file);

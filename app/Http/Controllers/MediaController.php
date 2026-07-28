@@ -10,6 +10,12 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class MediaController extends Controller
 {
+    private const ALLOWED_MIMES = 'mimes:jpg,jpeg,png,gif,webp,svg,pdf,zip,tar,gz,mp4,webm,txt,md';
+
+    private const BLOCKED_EXTENSIONS = ['php', 'exe', 'dll', 'sh', 'bat', 'ps1', 'jar'];
+
+    private const SAFE_PATH_REGEX = '/^(?!.*\.\.)[a-zA-Z0-9_\/\-\.\(\) ]+$/';
+
     public function index(Request $request, Project $project): JsonResponse
     {
         if ($project->user_id !== $request->user()->id) {
@@ -29,7 +35,7 @@ class MediaController extends Controller
                 'size' => $m->size,
                 'human_size' => $this->humanFileSize($m->size),
                 'url' => $m->getUrl(),
-                'thumbnail' => $m->mime_type === 'image' ? $m->getUrl('thumb') : null,
+                'thumbnail' => str_starts_with($m->mime_type, 'image/') ? $m->getUrl('thumb') : null,
                 'created_at' => $m->created_at,
                 'updated_at' => $m->updated_at,
             ]),
@@ -43,13 +49,17 @@ class MediaController extends Controller
         }
 
         $request->validate([
-            'file' => 'required|file|max:'.config('app.max_upload_size', 102400),
-            'path' => 'nullable|string|max:500',
+            'file' => ['required', 'file', 'max:'.config('app.max_upload_size', 102400), self::ALLOWED_MIMES],
+            'path' => ['nullable', 'string', 'max:500', 'regex:'.self::SAFE_PATH_REGEX],
         ]);
 
         $file = $request->file('file');
         $relativePath = $request->input('path', $file->getClientOriginalName());
         $ext = strtolower($file->getClientOriginalExtension());
+
+        if (in_array($ext, self::BLOCKED_EXTENSIONS)) {
+            return response()->json(['success' => false, 'message' => 'File type not allowed'], 422);
+        }
 
         if (in_array($ext, ['zip', 'rar', 'cbr'])) {
             $extracted = app(ArchiveService::class)->extractAndUpload($project, $file, $file->getClientOriginalName());
@@ -91,7 +101,7 @@ class MediaController extends Controller
                 'size' => $media->size,
                 'human_size' => $this->humanFileSize($media->size),
                 'url' => $media->getUrl(),
-                'thumbnail' => $media->mime_type === 'image' ? $media->getUrl('thumb') : null,
+                'thumbnail' => str_starts_with($media->mime_type, 'image/') ? $media->getUrl('thumb') : null,
                 'created_at' => $media->created_at,
             ],
         ], 201);
@@ -105,9 +115,9 @@ class MediaController extends Controller
 
         $request->validate([
             'files' => 'required|array',
-            'files.*' => 'required|file|max:'.config('app.max_upload_size', 102400),
+            'files.*' => ['required', 'file', 'max:'.config('app.max_upload_size', 102400), self::ALLOWED_MIMES],
             'paths' => 'nullable|array',
-            'paths.*' => 'nullable|string|max:500',
+            'paths.*' => ['nullable', 'string', 'max:500', 'regex:'.self::SAFE_PATH_REGEX],
         ]);
 
         $uploaded = [];
@@ -117,6 +127,10 @@ class MediaController extends Controller
         foreach ($files as $i => $file) {
             $relativePath = $paths[$i] ?? $file->getClientOriginalName();
             $ext = strtolower($file->getClientOriginalExtension());
+
+            if (in_array($ext, self::BLOCKED_EXTENSIONS)) {
+                continue;
+            }
 
             if (in_array($ext, ['zip', 'rar', 'cbr'])) {
                 $extracted = app(ArchiveService::class)->extractAndUpload($project, $file, $file->getClientOriginalName());
@@ -147,7 +161,7 @@ class MediaController extends Controller
                 'size' => $media->size,
                 'human_size' => $this->humanFileSize($media->size),
                 'url' => $media->getUrl(),
-                'thumbnail' => $media->mime_type === 'image' ? $media->getUrl('thumb') : null,
+                'thumbnail' => str_starts_with($media->mime_type, 'image/') ? $media->getUrl('thumb') : null,
                 'created_at' => $media->created_at,
             ];
         }
@@ -265,7 +279,7 @@ class MediaController extends Controller
         $isText = collect($textTypes)->contains(fn ($t) => str_starts_with($media->mime_type, $t));
 
         $content = null;
-        if ($isText) {
+        if ($isText && $media->size < 1024 * 1024) {
             $content = file_get_contents($media->getPath());
         }
 

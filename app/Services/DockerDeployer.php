@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Project;
+use Illuminate\Support\Facades\Cache;
 use RuntimeException;
 
 class DockerDeployer
@@ -14,6 +15,20 @@ class DockerDeployer
     private const NETWORK_NAME = 'hideo_network';
 
     public function deploy(Project $project): void
+    {
+        $lock = Cache::lock("project-{$project->id}-deploy", 120);
+        if (! $lock->get()) {
+            throw new RuntimeException('Deployment already in progress for this project');
+        }
+
+        try {
+            $this->deployInternal($project);
+        } finally {
+            $lock->release();
+        }
+    }
+
+    private function deployInternal(Project $project): void
     {
         set_time_limit(600);
         $sourcePath = $project->sourcePath();
@@ -105,7 +120,7 @@ class DockerDeployer
             ->get();
 
         $configPath = storage_path('app/nginx-hideo.conf');
-        $serverName = config('app.domain', env('APP_DOMAIN', 'hideo.test'));
+        $serverName = config('app.domain', 'hideo.test');
 
         $conf = "# Hideo Hosting - Auto-generated nginx config\n";
         $conf .= '# Generated at '.now()."\n\n";
@@ -162,12 +177,12 @@ class DockerDeployer
     {
         $name = 'hideo-'.$project->slug;
 
-        exec("docker stop {$name} 2>/dev/null");
-        exec("docker rm {$name} 2>/dev/null");
+        exec('docker stop '.escapeshellarg($name).' 2>/dev/null');
+        exec('docker rm '.escapeshellarg($name).' 2>/dev/null');
 
         if ($project->container_id && $project->container_id !== $name) {
-            exec("docker stop {$project->container_id} 2>/dev/null");
-            exec("docker rm {$project->container_id} 2>/dev/null");
+            exec('docker stop '.escapeshellarg($project->container_id).' 2>/dev/null');
+            exec('docker rm '.escapeshellarg($project->container_id).' 2>/dev/null');
         }
 
         if ($project->cloudflare_tunnel_id) {
@@ -192,6 +207,11 @@ class DockerDeployer
 
         foreach ($mediaItems as $media) {
             $relativePath = $media->getCustomProperty('path', $media->file_name);
+
+            if (str_contains($relativePath, '..') || str_starts_with($relativePath, '/') || str_contains($relativePath, "\0")) {
+                continue;
+            }
+
             $destPath = "{$sourcePath}/{$relativePath}";
             $destDir = dirname($destPath);
             if (! is_dir($destDir)) {
@@ -203,8 +223,10 @@ class DockerDeployer
 
     public function getLogs(Project $project, int $lines = 50): string
     {
+        $lines = max(1, min(5000, $lines));
         $name = 'hideo-'.$project->slug;
-        exec("docker logs --tail {$lines} {$name} 2>&1", $output);
+
+        exec("docker logs --tail {$lines} ".escapeshellarg($name).' 2>&1', $output);
 
         return implode("\n", $output);
     }
@@ -322,7 +344,7 @@ PHP
                 return $this->rubyDockerfile($baseImage, $installCmd, $startCmd, $port);
 
             case 'go':
-                return $this->goDockerfile($baseImage, $installCmd, $startCmd, $port);
+                return $this->goDockerfile($baseImage, $installCmd, $buildCmd, $startCmd, $port);
 
             default:
                 return $this->staticDockerfile($port);
@@ -332,13 +354,11 @@ PHP
     private function nodeDockerfile(string $base, ?string $install, ?string $build, ?string $start, ?string $output, int $port): string
     {
         $df = "FROM {$base} AS builder\nWORKDIR /app\nCOPY package*.json ./\n";
+        $df .= "COPY . .\n";
 
         if ($install) {
             $df .= "RUN {$install}\n";
         }
-
-        $df .= "COPY . .\n";
-
         if ($build) {
             $df .= "RUN {$build}\n";
         }
@@ -349,7 +369,7 @@ PHP
         } else {
             $df .= "EXPOSE {$port}\n";
             if ($start) {
-                $df .= "CMD [\"sh\", \"-c\", \"{$start}\"]\n";
+                $df .= 'CMD '.json_encode(['sh', '-c', $start])."\n";
             } else {
                 $df .= "CMD [\"node\", \"index.js\"]\n";
             }
@@ -375,7 +395,7 @@ PHP
 
         if ($start) {
             $start = str_replace('{port}', (string) $port, $start);
-            $df .= "CMD [\"sh\", \"-c\", \"{$start}\"]\n";
+            $df .= 'CMD '.json_encode(['sh', '-c', $start])."\n";
         }
 
         $df .= "EXPOSE {$port}\n";
@@ -394,7 +414,7 @@ PHP
         $df .= "COPY . .\n";
         $df .= "EXPOSE {$port}\n";
         if ($start) {
-            $df .= "CMD [\"sh\", \"-c\", \"{$start}\"]\n";
+            $df .= 'CMD '.json_encode(['sh', '-c', $start])."\n";
         }
 
         return $df;
@@ -411,7 +431,7 @@ PHP
 
         $df .= "EXPOSE {$port}\n";
         if ($start) {
-            $df .= "CMD [\"sh\", \"-c\", \"{$start}\"]\n";
+            $df .= 'CMD '.json_encode(['sh', '-c', $start])."\n";
         }
 
         return $df;
@@ -457,14 +477,15 @@ PHP
     {
         $dbName = $project->database_name ?? ('hideo_'.$project->slug);
         $dbUser = 'hideo_user';
-        $dbPass = hash_hmac('sha256', (string) $project->id, 'hideo-db-secret');
+        $dbSecret = config('app.key');
+        $dbPass = hash_hmac('sha256', (string) $project->id, $dbSecret);
         $containerName = 'hideo-db-'.$project->slug;
 
         switch ($project->database_type) {
             case 'mysql':
                 $dbContainer = 'mysql:8.4';
                 $env = [
-                    'MYSQL_ROOT_PASSWORD' => hash_hmac('sha256', (string) $project->id.'-root', 'hideo-db-secret'),
+                    'MYSQL_ROOT_PASSWORD' => hash_hmac('sha256', (string) $project->id.'-root', $dbSecret),
                     'MYSQL_DATABASE' => $dbName,
                     'MYSQL_USER' => $dbUser,
                     'MYSQL_PASSWORD' => $dbPass,

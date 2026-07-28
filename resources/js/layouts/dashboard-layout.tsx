@@ -1,7 +1,7 @@
 import { AppContent } from '@/components/app-content';
-import { AppSidebarHeader } from '@/components/app-sidebar-header';
-import { AppSidebar } from '@/components/app-sidebar';
 import { AppShell } from '@/components/app-shell';
+import { AppSidebar } from '@/components/app-sidebar';
+import { AppSidebarHeader } from '@/components/app-sidebar-header';
 
 interface DashboardLayoutProps {
     children: React.ReactNode;

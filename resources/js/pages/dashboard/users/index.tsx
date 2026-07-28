@@ -3,7 +3,6 @@ import { Trash2, Check, X, Pencil, Eye, EyeOff, Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
-import { useInitials } from '@/hooks/use-initials'
 import type { User, ApiResponse } from '@/types/api'
 
 interface PaginatedUsers {
@@ -15,14 +14,12 @@ interface PaginatedUsers {
 
 export default function UsersIndex() {
   const props = usePage().props as unknown as { auth: { user: User } }
-  const { auth } = props
-  const getInitials = useInitials()
+  const userRole = props.auth?.user?.role
   const [users, setUsers] = useState<User[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
   const [deletingId, setDeletingId] = useState<number | null>(null)
-  const [filterStatus, setFilterStatus] = useState('')
   const [refreshKey, setRefreshKey] = useState(0)
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [editEmail, setEditEmail] = useState('')
@@ -35,17 +32,17 @@ export default function UsersIndex() {
   const [createForm, setCreateForm] = useState({ username: '', email: '', password: '', role: 'user' })
 
   useEffect(() => {
-    if (!auth?.user) {
+    if (!userRole) {
       return
     }
 
-    if (auth.user.role !== 'admin') {
+    if (userRole !== 'admin') {
       router.visit('/dashboard')
 
       return
     }
 
-    let cancelled = false
+    const abortController = new AbortController()
 
     async function run() {
       setLoading(true)
@@ -53,22 +50,18 @@ export default function UsersIndex() {
       try {
         const params = new URLSearchParams({ page: String(page) })
 
-        if (filterStatus) {
-          params.set('status', filterStatus)
-        }
+        const res = await api.get<ApiResponse<PaginatedUsers>>(`/api/users?${params}`, abortController.signal)
 
-        const res = await api.get<ApiResponse<PaginatedUsers>>(`/api/users?${params}`)
-
-        if (!cancelled && res.success && res.data) {
+        if (res.success && res.data) {
           setUsers(res.data.data || [])
           setTotal(res.data.total)
         }
       } catch {
-        if (!cancelled) {
+        if (!abortController.signal.aborted) {
           toast.error('Failed to load users')
         }
       } finally {
-        if (!cancelled) {
+        if (!abortController.signal.aborted) {
           setLoading(false)
         }
       }
@@ -77,23 +70,16 @@ export default function UsersIndex() {
     run()
 
     return () => {
-      cancelled = true
+      abortController.abort()
     }
-  }, [auth, page, filterStatus, refreshKey])
-
-  const changeRole = async (user: User, newRole: string) => {
-    try {
-      await api.patch(`/api/users/${user.id}/role`, { role: newRole })
-      setRefreshKey(k => k + 1)
-    } catch {
-      toast.error('Failed to change role')
-    }
-  }
+  }, [userRole, page, refreshKey])
 
   const handleCreate = async () => {
     setSaving(true)
+
     try {
       const res = await api.post<ApiResponse<User>>('/api/users', createForm)
+
       if (res.success) {
         toast.success('User created successfully')
         setShowCreate(false)
@@ -146,16 +132,23 @@ export default function UsersIndex() {
   }
 
   const handleUpdate = async () => {
-    if (!editingUser) return
+    if (!editingUser) {
+return
+}
+
     setSaving(true)
+
     try {
       const payload: Record<string, string> = { role: editRole }
+
       if (editEmail !== editingUser.email) {
         payload.email = editEmail
       }
+
       if (newPassword) {
         payload.password = newPassword
       }
+
       await api.patch(`/api/users/${editingUser.id}`, payload)
       toast.success('User updated successfully')
       setEditingUser(null)
@@ -168,7 +161,7 @@ export default function UsersIndex() {
     }
   }
 
-  if (!auth?.user || auth.user.role !== 'admin') {
+  if (!userRole || userRole !== 'admin') {
     return null
   }
 
@@ -206,7 +199,7 @@ export default function UsersIndex() {
               </div>
             ) : users.length === 0 ? (
               <p className="text-center text-sm text-[var(--color-on-surface-variant)] py-8">
-                No users found{filterStatus ? ` with status "${filterStatus}"` : ''}.
+                No users found.
               </p>
             ) : (
               <div className="space-y-2">
@@ -264,7 +257,7 @@ export default function UsersIndex() {
                         </>
                       )}
 
-                      {user.id !== auth?.user?.id && user.status === 'active' && (
+                      {user.id !== props.auth?.user?.id && user.status === 'active' && (
                         <>
                           <button
                             onClick={() => openEdit(user)}
@@ -336,7 +329,9 @@ export default function UsersIndex() {
         )}
 
         {showCreate && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => { setShowCreate(false); setShowCreatePassword(false); setCreateForm({ username: '', email: '', password: '', role: 'user' }) }}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => {
+ setShowCreate(false); setShowCreatePassword(false); setCreateForm({ username: '', email: '', password: '', role: 'user' }) 
+}}>
             <div className="bg-[var(--color-surface-container)] backdrop-blur-xl rounded-xl shadow-2xl border border-[var(--color-border)] p-6 max-w-md w-full mx-4" onClick={e => e.stopPropagation()}>
               <h3 className="text-lg font-semibold mb-5 text-[var(--color-on-surface)] font-[var(--font-display)]">Create User</h3>
               <div className="space-y-4">
@@ -391,7 +386,9 @@ export default function UsersIndex() {
               </div>
               <div className="flex justify-end gap-2 mt-6">
                 <button
-                  onClick={() => { setShowCreate(false); setShowCreatePassword(false); setCreateForm({ username: '', email: '', password: '', role: 'user' }) }}
+                  onClick={() => {
+ setShowCreate(false); setShowCreatePassword(false); setCreateForm({ username: '', email: '', password: '', role: 'user' }) 
+}}
                   className="px-4 py-2 text-sm font-medium rounded-[var(--radius)] border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)] transition-all"
                 >
                   Cancel
@@ -409,7 +406,9 @@ export default function UsersIndex() {
         )}
 
         {editingUser && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => { setEditingUser(null); setNewPassword(''); setShowNewPassword(false) }}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => {
+ setEditingUser(null); setNewPassword(''); setShowNewPassword(false) 
+}}>
             <div className="bg-[var(--color-surface-container)] backdrop-blur-xl rounded-xl shadow-2xl border border-[var(--color-border)] p-6 max-w-md w-full mx-4" onClick={e => e.stopPropagation()}>
               <h3 className="text-lg font-semibold mb-1 text-[var(--color-on-surface)] font-[var(--font-display)]">Edit User</h3>
               <p className="text-sm text-[var(--color-on-surface-variant)] mb-5">
@@ -459,7 +458,9 @@ export default function UsersIndex() {
               </div>
               <div className="flex justify-end gap-2 mt-6">
                 <button
-                  onClick={() => { setEditingUser(null); setNewPassword('') }}
+                  onClick={() => {
+ setEditingUser(null); setNewPassword('') 
+}}
                   className="px-4 py-2 text-sm font-medium rounded-[var(--radius)] border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)] transition-all"
                 >
                   Cancel

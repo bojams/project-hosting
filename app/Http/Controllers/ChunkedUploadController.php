@@ -6,9 +6,14 @@ use App\Models\Project;
 use App\Services\ArchiveService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class ChunkedUploadController extends Controller
 {
+    private const ALLOWED_MIMES = 'mimes:jpg,jpeg,png,gif,webp,svg,pdf,zip,tar,gz,mp4,webm,txt,md';
+
+    private const BLOCKED_EXTENSIONS = ['php', 'exe', 'dll', 'sh', 'bat', 'ps1', 'jar'];
+
     private function chunkDir(Project $project): string
     {
         $dir = storage_path("app/chunks/{$project->id}");
@@ -28,13 +33,18 @@ class ChunkedUploadController extends Controller
         }
 
         $request->validate([
-            'file' => 'required|file',
-            'chunk_index' => 'required|integer|min:0',
-            'total_chunks' => 'required|integer|min:1',
+            'file' => ['required', 'file', self::ALLOWED_MIMES],
+            'chunk_index' => 'required|integer|min:0|max:99999',
+            'total_chunks' => 'required|integer|min:1|max:5000',
             'original_name' => 'required|string|max:255',
             'relative_path' => 'nullable|string|max:500',
-            'upload_id' => 'nullable|string|max:100',
+            'upload_id' => 'nullable|string|max:100|regex:/^[a-zA-Z0-9_-]+$/',
         ]);
+
+        $ext = strtolower(pathinfo($request->input('original_name'), PATHINFO_EXTENSION));
+        if (in_array($ext, self::BLOCKED_EXTENSIONS)) {
+            return response()->json(['success' => false, 'message' => 'File type not allowed'], 422);
+        }
 
         $chunkDir = $this->chunkDir($project);
         $uploadId = $request->input('upload_id', md5($request->input('original_name').$project->id));
@@ -73,9 +83,9 @@ class ChunkedUploadController extends Controller
         }
 
         $request->validate([
-            'upload_id' => 'required|string',
+            'upload_id' => 'required|string|max:100|regex:/^[a-zA-Z0-9_-]+$/',
             'original_name' => 'required|string|max:255',
-            'total_chunks' => 'required|integer|min:1',
+            'total_chunks' => 'required|integer|min:1|max:5000',
             'relative_path' => 'nullable|string|max:500',
         ]);
 
@@ -94,14 +104,20 @@ class ChunkedUploadController extends Controller
             }
         }
 
-        $tempPath = tempnam(sys_get_temp_dir(), 'hideo_');
+        $tempPath = tempnam(sys_get_temp_dir(), 'hideo_'.Str::random(16));
         $out = fopen($tempPath, 'wb');
         if (! $out) {
             return response()->json(['success' => false, 'message' => 'Failed to create temp file'], 500);
         }
 
         for ($i = 0; $i < $totalChunks; $i++) {
-            $chunkPath = "{$chunkDir}/{$uploadId}.part{$i}";
+            $chunkPath = realpath("{$chunkDir}/{$uploadId}.part{$i}");
+            if ($chunkPath === false || ! str_starts_with($chunkPath, realpath($chunkDir))) {
+                fclose($out);
+                unlink($tempPath);
+
+                return response()->json(['success' => false, 'message' => 'Invalid chunk path'], 400);
+            }
             $in = fopen($chunkPath, 'rb');
             if ($in) {
                 stream_copy_to_stream($in, $out);
@@ -173,13 +189,21 @@ class ChunkedUploadController extends Controller
             abort(404);
         }
 
-        $request->validate(['upload_id' => 'required|string']);
+        $request->validate(['upload_id' => 'required|string|max:100|regex:/^[a-zA-Z0-9_-]+$/']);
 
         $chunkDir = $this->chunkDir($project);
         $uploadId = $request->input('upload_id');
+        $realChunkDir = realpath($chunkDir);
 
-        foreach (glob("{$chunkDir}/{$uploadId}.part*") as $chunk) {
-            unlink($chunk);
+        if ($realChunkDir === false) {
+            return response()->json(['success' => true, 'message' => 'No chunks to cancel']);
+        }
+
+        foreach (glob("{$realChunkDir}/{$uploadId}.part*") as $chunk) {
+            $realChunk = realpath($chunk);
+            if ($realChunk !== false && str_starts_with($realChunk, $realChunkDir)) {
+                unlink($realChunk);
+            }
         }
 
         return response()->json(['success' => true, 'message' => 'Upload cancelled']);

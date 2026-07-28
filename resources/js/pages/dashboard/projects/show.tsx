@@ -4,7 +4,7 @@ import {
   Trash2, Pencil, Check, X, FolderKanban, Globe, FileEdit,
   Clock, HardDrive, Loader2, Package, Settings,
   Terminal, Cpu, Eye, EyeOff, Play,
-  ChevronLeft, ChevronRight, Square, ShieldAlert, CheckCircle, XCircle, RefreshCw
+  ChevronLeft, ChevronRight, Square, ShieldAlert, CheckCircle, XCircle
 } from 'lucide-react'
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { toast } from 'sonner'
@@ -140,20 +140,33 @@ setFilePage(maxPage)
       if (res.success) {
         toast.success('Deploy started — container is spinning up')
         let attempts = 0
-        const poll = setInterval(async () => {
+        const pollRef = { current: null as ReturnType<typeof setInterval> | null }
+        pollRef.current = setInterval(async () => {
           attempts++
           const updated = await api.get<ApiResponse<Project>>(`/api/projects/${id}`)
 
           if (updated.data?.container_status === 'running') {
-            clearInterval(poll)
+            if (pollRef.current) {
+              clearInterval(pollRef.current)
+            }
+
             toast.success('Container is running')
             setProject(updated.data)
             fetchTunnelStatus()
           } else if (attempts > 30) {
-            clearInterval(poll)
+            if (pollRef.current) {
+              clearInterval(pollRef.current)
+            }
+
             loadProject()
           }
         }, 2000)
+
+        setTimeout(() => {
+          if (pollRef.current) {
+            clearInterval(pollRef.current)
+          }
+        }, 120000)
       } else {
         toast.error(res.message || 'Deploy failed')
       }
@@ -262,12 +275,14 @@ setTunnelToken(res.data.token)
   const handleVerifyDomain = async () => {
     if (!customDomain) {
       toast.error('Set a custom domain first')
+
       return
     }
 
     setVerifyingDomain(true)
+
     try {
-      const res = await api.post<ApiResponse<{ status: string; server_ip: string; resolved_ips: string[]; domain: string; message: string; cname_target: string | null; auto_fixed: boolean }>>(`/api/projects/${id}/verify-domain`)
+      const res = await api.post<ApiResponse<{ status: string; server_ip: string; resolved_ips: string[]; domain: string; message: string; cname_target: string | null; auto_fixed: boolean; using_tunnel: boolean }>>(`/api/projects/${id}/verify-domain`)
 
       if (res.success && res.data) {
         setVerifyResult(res.data)
@@ -301,7 +316,7 @@ fetchTunnelStatus()
 }
   }, [id, fetchTunnelStatus])
 
-  const handleScan = async () => {
+  const handleScan = useCallback(async () => {
     setScanning(true)
 
     try {
@@ -327,14 +342,14 @@ setPort(res.data.internal_port)
     } finally {
       setScanning(false)
     }
-  }
+  }, [id])
 
   useEffect(() => {
     if (activeTab === 'deploy' && project && !project.framework && !scannerResult && !autoScannedRef.current && project.source_type !== 'manual') {
       autoScannedRef.current = true
       handleScan()
     }
-  }, [activeTab, project?.id])
+  }, [activeTab, project, scannerResult, handleScan])
 
   const handleSaveConfig = async () => {
     setSavingConfig(true)
@@ -512,9 +527,7 @@ return
     setDeletingBatch(true)
 
     try {
-      await Promise.all(confirmDeleteSelected.map(fid =>
-        api.delete(`/api/projects/${id}/media/${fid}`)
-      ))
+      await api.post(`/api/projects/${id}/media/batch-delete`, { ids: confirmDeleteSelected })
       setConfirmDeleteSelected(null)
       setSelectedFiles([])
       loadProject()
@@ -541,7 +554,7 @@ return
 
   const handleRename = async (mediaId: number, newName: string) => {
     try {
-      await api.put(`/api/projects/${id}/media/${mediaId}`, { name: newName })
+      await api.patch(`/api/projects/${id}/media/${mediaId}`, { name: newName })
       setRenamingFile(null)
       loadProject()
     } catch {
@@ -1125,7 +1138,7 @@ pages.push(i)
                             <Settings className="h-4 w-4 text-[var(--color-on-surface-variant)] shrink-0" />
                             <span className="text-[var(--color-on-surface-variant)]">Port:</span>
                             <span className="text-[var(--color-on-surface)] font-mono text-xs">
-                              {scannerResult?.internal_port || project.internal_port || project.port || 'auto'}
+                              {scannerResult?.internal_port ?? project.internal_port ?? project.port ?? 'auto'}
                             </span>
                             {databaseType && (
                               <>
@@ -1507,6 +1520,7 @@ pages.push(i)
                         let label: string
                         let color: string
                         let Icon: any
+
                         if (isMatch) {
                           label = 'match'
                           color = 'var(--color-success)'
@@ -1524,6 +1538,7 @@ pages.push(i)
                           color = 'var(--color-danger)'
                           Icon = XCircle
                         }
+
                         return (
                           <div key={i} className="flex items-center gap-2 text-xs">
                             <code className="font-mono text-[var(--color-on-surface)]">{ip}</code>

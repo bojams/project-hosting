@@ -1,9 +1,18 @@
 import { Head, Link } from '@inertiajs/react'
+import DOMPurify from 'dompurify'
 import { ChevronLeft } from 'lucide-react'
 
 interface Props {
   slug: string
   content: string
+}
+
+function escapeHtml(str: string): string {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+function escapeAttr(str: string): string {
+  return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
 function renderMarkdown(text: string): string {
@@ -21,11 +30,14 @@ function renderMarkdown(text: string): string {
   html = html.replace(/`([^`]+)`/g, '<code class="text-xs font-mono bg-[var(--color-surface-container-high)] text-[var(--color-primary)] px-1.5 py-0.5 rounded">$1</code>')
 
   html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, text, url) => {
+    const safeUrl = escapeAttr(url)
+    const safeText = escapeHtml(text)
+
     if (url.startsWith('http')) {
-      return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-[var(--color-primary)] hover:underline">${text}</a>`
+      return `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="text-[var(--color-primary)] hover:underline">${safeText}</a>`
     }
 
-    return `<a href="${url}" class="text-[var(--color-primary)] hover:underline">${text}</a>`
+    return `<a href="${safeUrl}" class="text-[var(--color-primary)] hover:underline">${safeText}</a>`
   })
 
   const lines = html.split('\n')
@@ -58,10 +70,10 @@ continue
 
       if (isHeader) {
         result.push('<div class="overflow-x-auto my-3"><table class="w-full text-sm border-collapse"><thead><tr class="border-b border-[rgba(255,255,255,0.06)]">')
-        result.push(cells.map(c => `<th class="text-left px-3 py-2 text-[var(--color-on-surface-variant)] font-medium">${c}</th>`).join(''))
+        result.push(cells.map(c => `<th class="text-left px-3 py-2 text-[var(--color-on-surface-variant)] font-medium">${escapeHtml(c)}</th>`).join(''))
         result.push('</tr></thead><tbody>')
       } else {
-        result.push(`<tr class="border-b border-[rgba(255,255,255,0.04)]">${cells.map(c => `<td class="px-3 py-2 text-[var(--color-on-surface-variant)]">${c}</td>`).join('')}</tr>`)
+        result.push(`<tr class="border-b border-[rgba(255,255,255,0.04)]">${cells.map(c => `<td class="px-3 py-2 text-[var(--color-on-surface-variant)]">${escapeHtml(c)}</td>`).join('')}</tr>`)
       }
 
       if (!lines[i + 1] || !lines[i + 1].startsWith('|')) {
@@ -77,7 +89,7 @@ continue
         inList = true
       }
 
-      result.push(`<li class="text-sm text-[var(--color-on-surface-variant)] ml-4 list-disc">${line.slice(2)}</li>`)
+      result.push(`<li class="text-sm text-[var(--color-on-surface-variant)] ml-4 list-disc">${escapeHtml(line.slice(2))}</li>`)
       continue
     }
 
@@ -87,7 +99,7 @@ continue
         inList = true
       }
 
-      result.push(`<li class="text-sm text-[var(--color-on-surface-variant)] ml-4 list-decimal">${line.replace(/^\d+\.\s/, '')}</li>`)
+      result.push(`<li class="text-sm text-[var(--color-on-surface-variant)] ml-4 list-decimal">${escapeHtml(line.replace(/^\d+\.\s/, ''))}</li>`)
       continue
     }
 
@@ -96,7 +108,7 @@ continue
  result.push('</ul>'); inList = false 
 }
 
-      result.push(`<blockquote class="border-l-2 border-[var(--color-primary)] pl-4 my-3 text-sm text-[var(--color-on-surface-variant)] italic">${line.slice(2)}</blockquote>`)
+      result.push(`<blockquote class="border-l-2 border-[var(--color-primary)] pl-4 my-3 text-sm text-[var(--color-on-surface-variant)] italic">${escapeHtml(line.slice(2))}</blockquote>`)
       continue
     }
 
@@ -122,6 +134,8 @@ continue
 }
 
 export default function DocsShow({ slug, content }: Props) {
+  const sanitizedHtml = DOMPurify.sanitize(renderMarkdown(content))
+
   return (
     <>
       <Head title={slug.charAt(0).toUpperCase() + slug.slice(1)} />
@@ -137,7 +151,7 @@ export default function DocsShow({ slug, content }: Props) {
         <div className="bg-[var(--color-bg-card)] backdrop-blur-xl rounded-xl border border-[rgba(255,255,255,0.06)] p-4 sm:p-6 lg:p-8">
           <article
             className="prose-custom max-w-none"
-            dangerouslySetInnerHTML={{ __html: renderMarkdown(content) }}
+            dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
           />
         </div>
       </div>

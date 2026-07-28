@@ -69,7 +69,6 @@ export interface User {
     avatar_url: string | null;
     role: string;
     status: string;
-    plain_password: string | null;
     created_at: string;
     updated_at: string;
 }

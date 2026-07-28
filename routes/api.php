@@ -9,7 +9,7 @@ use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('api')->middleware('auth')->group(function () {
+Route::prefix('api')->middleware(['auth', 'throttle:60,1'])->group(function () {
     Route::apiResource('projects', ProjectController::class);
 
     Route::get('/projects/{project}/media', [MediaController::class, 'index']);
@@ -52,8 +52,8 @@ Route::prefix('api')->middleware('auth')->group(function () {
     Route::delete('/users/{user}', [UsersController::class, 'destroy']);
 });
 
-Route::get('/api/preview/{slug}', [PreviewController::class, 'index']);
-Route::get('/api/preview/{slug}/{path}', [PreviewController::class, 'serve'])->where('path', '.*');
+Route::get('/api/preview/{slug}', [PreviewController::class, 'index'])->middleware('throttle:30,1');
+Route::get('/api/preview/{slug}/{path}', [PreviewController::class, 'serve'])->where('path', '.*')->middleware('throttle:30,1');
 
 Route::get('/api/by-domain', function (Request $request) {
     $host = $request->query('host');
@@ -61,9 +61,14 @@ Route::get('/api/by-domain', function (Request $request) {
         return response()->json(['success' => false, 'message' => 'host required'], 400);
     }
 
+    if (! preg_match('/^[a-zA-Z0-9._-]+$/', $host)) {
+        return response()->json(['success' => false, 'message' => 'invalid host'], 400);
+    }
+
     $parts = explode('.', $host);
     $subdomain = $parts[0] ?? null;
 
+    $project = null;
     if (count($parts) >= 2) {
         $rootDomain = implode('.', array_slice($parts, 1));
 
@@ -71,22 +76,11 @@ Route::get('/api/by-domain', function (Request $request) {
             ->where('domain', $subdomain)
             ->whereNotNull('container_status')
             ->first();
-
-        if ($project) {
-            return response()->json([
-                'success' => true,
-                'data' => [
-                    'id' => $project->id,
-                    'slug' => $project->slug,
-                    'name' => $project->name,
-                    'port' => $project->port,
-                    'container_status' => $project->container_status,
-                ],
-            ]);
-        }
     }
 
-    $project = Project::where('slug', $subdomain)->whereNotNull('container_status')->first();
+    if (! $project) {
+        $project = Project::where('slug', $subdomain)->whereNotNull('container_status')->first();
+    }
 
     if (! $project || ! $project->port) {
         return response()->json(['success' => false, 'message' => 'No project found for this domain'], 404);
@@ -102,9 +96,13 @@ Route::get('/api/by-domain', function (Request $request) {
             'container_status' => $project->container_status,
         ],
     ]);
-});
+})->middleware('throttle:60,1');
 
 Route::get('/api/slug/{slug}/port', function (string $slug) {
+    if (! preg_match('/^[a-zA-Z0-9_-]+$/', $slug)) {
+        return response()->json(['success' => false, 'message' => 'invalid slug'], 400);
+    }
+
     $project = Project::where('slug', $slug)->first();
     if (! $project) {
         return response()->json(['success' => false, 'message' => 'Project not found'], 404);
@@ -119,4 +117,4 @@ Route::get('/api/slug/{slug}/port', function (string $slug) {
             'name' => $project->name,
         ],
     ]);
-});
+})->middleware('throttle:60,1');

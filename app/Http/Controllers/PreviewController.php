@@ -12,11 +12,14 @@ class PreviewController extends Controller
             ->where('status', 'published')
             ->firstOrFail();
 
-        if (! $project->preview_path) {
+        if (! $project->preview_path || ! ctype_digit((string) $project->preview_path)) {
             abort(404, 'Preview not available');
         }
 
-        return redirect("http://localhost:{$project->preview_path}", 302);
+        $port = (int) $project->preview_path;
+        $serverHost = config('app.preview_url', 'http://localhost');
+
+        return redirect("{$serverHost}:{$port}", 302);
     }
 
     public function serve(string $slug, string $path)
@@ -25,13 +28,20 @@ class PreviewController extends Controller
             ->where('status', 'published')
             ->firstOrFail();
 
-        if (! $project->preview_path) {
+        if (! $project->preview_path || ! ctype_digit((string) $project->preview_path)) {
             abort(404);
         }
 
-        $target = "/{$path}";
+        $port = (int) $project->preview_path;
+        $serverHost = config('app.preview_url', 'http://localhost');
+
+        $path = ltrim($path, '/');
+        if (str_contains($path, '..') || str_contains($path, "\0")) {
+            abort(404);
+        }
+
         $query = http_build_query(request()->query());
-        $url = "http://localhost:{$project->preview_path}".($query ? "?{$query}" : '');
+        $url = "{$serverHost}:{$port}/{$path}".($query ? "?{$query}" : '');
 
         return redirect($url, 302);
     }

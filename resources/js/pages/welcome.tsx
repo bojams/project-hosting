@@ -1,6 +1,8 @@
-import { Head, Link, router, usePage } from '@inertiajs/react'
+import { Head, Link, usePage } from '@inertiajs/react'
 import { Upload, Eye, FolderKanban, Globe, Container, Cpu, Rocket, Settings, FileCode, Shield, ChevronDown, LayoutDashboard, LogOut } from 'lucide-react'
 import { useState } from 'react'
+import BrandLogo from '@/components/brand-logo'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -10,8 +12,6 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import BrandLogo from '@/components/brand-logo'
 import { useInitials } from '@/hooks/use-initials'
 import { dashboard, logout } from '@/routes'
 import { edit } from '@/routes/profile'

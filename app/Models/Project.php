@@ -36,10 +36,6 @@ class Project extends Model implements HasMedia
         'database_name',
         'container_id',
         'container_status',
-        'cloudflare_api_token',
-        'cloudflare_zone_id',
-        'cloudflare_account_id',
-        'cloudflare_tunnel_id',
     ];
 
     protected $casts = [
