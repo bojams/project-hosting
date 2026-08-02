@@ -1,9 +1,17 @@
-import { Head, Link, usePage } from '@inertiajs/react'
+import { Head, Link, router, usePage } from '@inertiajs/react'
 import BrandLogo from '@/components/brand-logo'
 
 export default function NotFound() {
   const props = usePage().props as unknown as { auth: { user: { id: number; username: string } | null } }
   const homeHref = props.auth?.user ? '/dashboard' : '/'
+
+  const goBack = () => {
+    if (window.history.length > 1) {
+      window.history.back()
+    } else {
+      router.visit(homeHref)
+    }
+  }
 
   return (
     <>
@@ -19,12 +27,13 @@ export default function NotFound() {
             Halaman yang Anda cari tidak tersedia atau sudah dipindahkan.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link
-              href={homeHref}
+            <button
+              type="button"
+              onClick={goBack}
               className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium rounded-[var(--radius)] bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:shadow-[0_0_24px_rgb(102,255,153,0.25)] transition-all duration-200"
             >
-              {props.auth?.user ? 'Kembali ke dashboard' : 'Kembali ke beranda'}
-            </Link>
+              Kembali ke halaman sebelumnya
+            </button>
             <Link
               href="/#cara-kerja"
               className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium rounded-[var(--radius)] border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)] hover:text-[var(--color-on-surface)] transition-all duration-200"
