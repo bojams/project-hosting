@@ -77,6 +77,11 @@ class CloudflareTunnelService
             throw new RuntimeException('No tunnel configured for this project.');
         }
 
+        $service = $this->systemdServiceName($project);
+        if ($service) {
+            return $this->restartSystemdTunnel($project, $service);
+        }
+
         $cf = CloudflareService::forProject($project);
         if (! $cf) {
             throw new RuntimeException('Cloudflare credentials not configured.');
@@ -114,6 +119,14 @@ class CloudflareTunnelService
 
     public function stopTunnelProcess(Project $project): void
     {
+        $service = $this->systemdServiceName($project);
+        if ($service) {
+            $this->runCommand("/usr/bin/sudo -n /usr/bin/systemctl stop {$service} 2>&1");
+            @unlink(storage_path("logs/tunnel-{$project->id}.pid"));
+
+            return;
+        }
+
         $pidFile = storage_path("logs/tunnel-{$project->id}.pid");
         $outputFile = storage_path("logs/tunnel-{$project->id}.log");
 
@@ -131,6 +144,55 @@ class CloudflareTunnelService
 
         $escapedPattern = escapeshellarg("tunnel-{$project->id}.");
         exec("pkill -9 -f {$escapedPattern} 2>/dev/null");
+    }
+
+    protected function systemdDir(): string
+    {
+        return (string) config('services.cloudflare.systemd_dir', '/etc/systemd/system');
+    }
+
+    private function systemdServiceName(Project $project): ?string
+    {
+        $dir = $this->systemdDir();
+
+        foreach (["cloudflared-{$project->slug}-{$project->id}", "cloudflared-{$project->slug}"] as $name) {
+            if (is_file("{$dir}/{$name}.service")) {
+                return $name;
+            }
+        }
+
+        return null;
+    }
+
+    private function restartSystemdTunnel(Project $project, string $service): array
+    {
+        [$exitCode, $output] = $this->runCommand("/usr/bin/sudo -n /usr/bin/systemctl restart {$service} 2>&1");
+
+        if ($exitCode !== 0) {
+            throw new RuntimeException('Failed to restart systemd tunnel service: '.trim(implode(' ', $output)));
+        }
+
+        usleep(300000);
+
+        [, $mainPidOutput] = $this->runCommand("/usr/bin/sudo -n /usr/bin/systemctl show {$service} -p MainPID --value 2>/dev/null");
+        $mainPid = trim(implode('', $mainPidOutput));
+
+        if ($mainPid !== '') {
+            file_put_contents(storage_path("logs/tunnel-{$project->id}.pid"), $mainPid);
+        }
+
+        return [
+            'pid' => $mainPid ?: 'unknown',
+            'log_file' => "tunnel-{$project->id}.log",
+            'manager' => 'systemd',
+        ];
+    }
+
+    protected function runCommand(string $command): array
+    {
+        exec($command, $output, $exitCode);
+
+        return [$exitCode, $output];
     }
 
     public function getTunnelStatus(Project $project): array
