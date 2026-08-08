@@ -198,7 +198,7 @@ class DockerDeployer
         ]);
     }
 
-    private function syncMediaToSource(Project $project, string $sourcePath): void
+    public function syncMediaToSource(Project $project, string $sourcePath): void
     {
         $mediaItems = $project->getMedia('project_files');
         if ($mediaItems->isEmpty()) {
@@ -213,6 +213,11 @@ class DockerDeployer
             }
 
             $destPath = "{$sourcePath}/{$relativePath}";
+
+            if (is_file($destPath)) {
+                continue;
+            }
+
             $destDir = dirname($destPath);
             if (! is_dir($destDir)) {
                 mkdir($destDir, 0755, true);

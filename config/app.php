@@ -124,6 +124,8 @@ return [
     ],
 
     'max_upload_size' => env('MAX_UPLOAD_SIZE', 102400),
+
+    'source_path' => env('SOURCE_PATH', 'app/sources'),
     'domain_ip' => env('APP_DOMAIN_IP'),
     'domain' => env('APP_DOMAIN', 'hideo.test'),
     'preview_url' => env('APP_PREVIEW_URL', 'http://localhost'),

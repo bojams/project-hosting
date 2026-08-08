@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,7 +13,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Project extends Model implements HasMedia
 {
-    use InteractsWithMedia, SoftDeletes;
+    use HasFactory, InteractsWithMedia, SoftDeletes;
 
     protected $fillable = [
         'user_id',
@@ -80,6 +81,6 @@ class Project extends Model implements HasMedia
 
     public function sourcePath(): string
     {
-        return storage_path("app/sources/{$this->id}");
+        return storage_path(config('app.source_path', 'app/sources')."/{$this->id}");
     }
 }

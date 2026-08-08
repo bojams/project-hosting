@@ -33,19 +33,22 @@ class ArchiveService
             return [];
         }
 
-        $tempDir = storage_path('app/extract_'.uniqid());
-        if (! is_dir($tempDir)) {
-            mkdir($tempDir, 0755, true);
+        $destPath = $project->sourcePath();
+        if (! is_dir(dirname($destPath))) {
+            mkdir(dirname($destPath), 0755, true);
+        }
+        if (! is_dir($destPath)) {
+            mkdir($destPath, 0755, true);
         }
 
-        $baseDir = realpath($tempDir);
+        $baseDir = realpath($destPath);
         if ($baseDir === false) {
             $zip->close();
 
             return [];
         }
 
-        for ($i = 0; $i < $zip->numEntries; $i++) {
+        for ($i = 0; $i < $zip->numFiles; $i++) {
             $entryName = $zip->getNameIndex($i);
             if ($entryName === false) {
                 continue;
@@ -55,72 +58,75 @@ class ArchiveService
 
             if (str_contains($normalized, '..') || str_starts_with($normalized, '/')) {
                 $zip->close();
-                $this->deleteDirectory($tempDir);
                 Log::warning('Zip slip detected', ['entry' => $normalized, 'project' => $project->id]);
 
                 return [];
             }
 
-            $destPath = $baseDir.'/'.$normalized;
-            $destReal = realpath(dirname($destPath));
+            $destEntry = $baseDir.'/'.$normalized;
+            $destDir = dirname($destEntry);
+            if (! is_dir($destDir)) {
+                mkdir($destDir, 0755, true);
+            }
+
+            $destReal = realpath($destDir);
             if ($destReal === false || ! str_starts_with($destReal, $baseDir)) {
                 $zip->close();
-                $this->deleteDirectory($tempDir);
                 Log::warning('Zip slip detected (resolved path)', ['entry' => $normalized, 'project' => $project->id]);
 
                 return [];
             }
 
             if (substr($entryName, -1) === '/') {
-                if (! is_dir($destPath)) {
-                    mkdir($destPath, 0755, true);
+                if (! is_dir($destEntry)) {
+                    mkdir($destEntry, 0755, true);
                 }
             } else {
-                if (! is_dir(dirname($destPath))) {
-                    mkdir(dirname($destPath), 0755, true);
-                }
-                copy("zip://{$path}#{$entryName}", $destPath);
+                copy("zip://{$path}#{$entryName}", $destEntry);
             }
         }
 
         $zip->close();
+        $project->update(['source_type' => 'zip']);
+        $this->ungroupSingleRoot($baseDir);
 
-        return $this->uploadExtracted($project, $tempDir);
+        return $this->indexDirectory($baseDir);
     }
 
     private function extractRar(Project $project, string $path): array
     {
-        $tempDir = storage_path('app/extract_'.uniqid());
-        if (! is_dir($tempDir)) {
-            mkdir($tempDir, 0755, true);
+        $destPath = $project->sourcePath();
+        if (! is_dir(dirname($destPath))) {
+            mkdir(dirname($destPath), 0755, true);
+        }
+        if (! is_dir($destPath)) {
+            mkdir($destPath, 0755, true);
         }
 
         $escaped = escapeshellarg($path);
-        $outDir = escapeshellarg($tempDir);
+        $outDir = escapeshellarg($destPath);
         exec("7z x {$escaped} -o{$outDir} -y 2>/dev/null", $output, $exitCode);
 
         if ($exitCode !== 0) {
-            $this->deleteDirectory($tempDir);
-
             return [];
         }
 
-        $baseDir = realpath($tempDir);
+        $baseDir = realpath($destPath);
         if ($baseDir === false) {
-            $this->deleteDirectory($tempDir);
-
             return [];
         }
 
         $violations = $this->checkDirectoryTraversal($baseDir, $baseDir);
         if (! empty($violations)) {
-            $this->deleteDirectory($tempDir);
             Log::warning('Zip slip detected in RAR extraction', ['entries' => $violations, 'project' => $project->id]);
 
             return [];
         }
 
-        return $this->uploadExtracted($project, $tempDir);
+        $project->update(['source_type' => 'rar']);
+        $this->ungroupSingleRoot($baseDir);
+
+        return $this->indexDirectory($baseDir);
     }
 
     private function checkDirectoryTraversal(string $baseDir, string $dir): array
@@ -144,42 +150,69 @@ class ArchiveService
         return $violations;
     }
 
-    private function uploadExtracted(Project $project, string $dir): array
+    private function ungroupSingleRoot(string $dir): void
+    {
+        $entries = array_values(array_diff(scandir($dir), ['.', '..']));
+        if (count($entries) !== 1 || ! is_dir($dir.'/'.$entries[0])) {
+            return;
+        }
+
+        $nested = $dir.'/'.$entries[0];
+        $tmp = dirname($dir).'/'.basename($dir).'_move';
+        if (is_dir($tmp)) {
+            $this->deleteDirectory($tmp);
+        }
+        rename($dir, $tmp);
+        rename($tmp.'/'.$entries[0], $dir);
+        $this->deleteDirectory($tmp);
+    }
+
+    private function indexDirectory(string $dir): array
     {
         $uploaded = [];
 
-        $entries = array_diff(scandir($dir), ['.', '..']);
-        $singleRoot = count($entries) === 1 && is_dir($dir.'/'.reset($entries));
-        $baseDir = $singleRoot ? $dir.'/'.reset($entries) : $dir;
-
-        $files = $this->getAllFiles($baseDir);
+        $files = $this->getAllFiles($dir);
 
         foreach ($files as $filePath) {
-            $relativePath = substr($filePath, strlen($baseDir) + 1);
+            $relativePath = substr($filePath, strlen(rtrim($dir, '/')) + 1);
+            $size = (int) @filesize($filePath);
+            $mime = $this->mimeType($filePath);
 
-            try {
-                $media = $project->addMedia($filePath)
-                    ->withCustomProperties(['path' => $relativePath])
-                    ->toMediaCollection('project_files');
-
-                $uploaded[] = [
-                    'id' => $media->id,
-                    'name' => $media->name,
-                    'file_name' => $media->file_name,
-                    'path' => $relativePath,
-                    'mime_type' => $media->mime_type,
-                    'size' => $media->size,
-                    'human_size' => $this->humanFileSize($media->size),
-                    'url' => $media->getUrl(),
-                    'created_at' => $media->created_at,
-                ];
-            } catch (\Throwable) {
-            }
+            $uploaded[] = [
+                'id' => null,
+                'name' => pathinfo($filePath, PATHINFO_FILENAME),
+                'file_name' => basename($filePath),
+                'path' => $relativePath,
+                'mime_type' => $mime,
+                'size' => $size,
+                'human_size' => $this->humanFileSize($size),
+                'url' => null,
+                'created_at' => null,
+            ];
         }
 
-        $this->deleteDirectory($dir);
-
         return $uploaded;
+    }
+
+    private function mimeType(string $path): string
+    {
+        $mime = @mime_content_type($path);
+        if (is_string($mime)) {
+            return $mime;
+        }
+
+        $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+
+        return match ($ext) {
+            'php', 'phtml', 'phar' => 'application/x-httpd-php',
+            'js' => 'text/javascript',
+            'json' => 'application/json',
+            'css' => 'text/css',
+            'md' => 'text/markdown',
+            'txt', 'env', 'gitignore', 'dockerignore' => 'text/plain',
+            'zip' => 'application/zip',
+            default => 'application/octet-stream',
+        };
     }
 
     private function getAllFiles(string $dir): array

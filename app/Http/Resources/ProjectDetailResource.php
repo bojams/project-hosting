@@ -2,15 +2,34 @@
 
 namespace App\Http\Resources;
 
+use App\Services\DockerDeployer;
+use App\Services\ProjectFileService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class ProjectDetailResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $mediaItems = $this->getMedia('project_files');
+        app(DockerDeployer::class)->syncMediaToSource($this->resource, $this->resource->sourcePath());
+
+        $service = app(ProjectFileService::class);
+        $mediaByPath = $this->getMedia('project_files')
+            ->mapWithKeys(fn ($m) => [$m->getCustomProperty('path', $m->file_name) => $m]);
+
+        $files = $service->list($this->resource, function (array $row) use ($mediaByPath) {
+            $media = $mediaByPath->get($row['path']);
+            if ($media) {
+                $row['id'] = $media->id;
+                $row['url'] = $media->getUrl();
+                $row['created_at'] = $media->created_at;
+                $row['updated_at'] = $media->updated_at;
+            }
+
+            return $row;
+        });
+
+        usort($files, fn ($a, $b) => strcmp($a['path'], $b['path']));
 
         return [
             'id' => $this->id,
@@ -39,16 +58,7 @@ class ProjectDetailResource extends JsonResource
             'cloudflare_zone_id' => $this->cloudflare_zone_id ? '********' : null,
             'cloudflare_account_id' => $this->cloudflare_account_id ? '********' : null,
             'cloudflare_tunnel_id' => $this->cloudflare_tunnel_id,
-            'media' => $mediaItems->map(fn (Media $m) => [
-                'id' => $m->id,
-                'name' => $m->name,
-                'file_name' => $m->file_name,
-                'path' => $m->getCustomProperty('path', $m->file_name),
-                'mime_type' => $m->mime_type,
-                'size' => $m->size,
-                'url' => $m->getUrl(),
-                'created_at' => $m->created_at,
-            ])->values(),
+            'media' => array_values($files),
             'deployments' => DeploymentResource::collection($this->whenLoaded('deployments')),
         ];
     }

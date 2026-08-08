@@ -62,13 +62,13 @@ export default function ProjectShow() {
   const [scannerResult, setScannerResult] = useState<{ framework: string; framework_version: string | null; build_command: string | null; output_dir: string | null; internal_port: number } | null>(null)
   const [scanning, setScanning] = useState(false)
 
-  const [confirmDeleteFile, setConfirmDeleteFile] = useState<number | null>(null)
-  const [confirmDeleteSelected, setConfirmDeleteSelected] = useState<number[] | null>(null)
+  const [confirmDeleteFile, setConfirmDeleteFile] = useState<string | null>(null)
+  const [confirmDeleteSelected, setConfirmDeleteSelected] = useState<string[] | null>(null)
   const [confirmDeleteAll, setConfirmDeleteAll] = useState(false)
   const [deletingFile, setDeletingFile] = useState(false)
   const [deletingBatch, setDeletingBatch] = useState(false)
-  const [selectedFiles, setSelectedFiles] = useState<number[]>([])
-  const [renamingFile, setRenamingFile] = useState<{ id: number; name: string } | null>(null)
+  const [selectedFiles, setSelectedFiles] = useState<string[]>([])
+  const [renamingFile, setRenamingFile] = useState<{ id: string; name: string } | null>(null)
   const [extractedFiles, setExtractedFiles] = useState<string[]>([])
   const [filePage, setFilePage] = useState(1)
   const fileLimit = 8
@@ -509,7 +509,7 @@ return
     setDeletingFile(true)
 
     try {
-      await api.delete<ApiResponse<void>>(`/api/projects/${id}/media/${confirmDeleteFile}`)
+      await api.delete<ApiResponse<void>>(`/api/projects/${id}/media?path=${encodeURIComponent(confirmDeleteFile)}`)
       setConfirmDeleteFile(null)
       loadProject()
     } catch {
@@ -527,7 +527,7 @@ return
     setDeletingBatch(true)
 
     try {
-      await api.post(`/api/projects/${id}/media/batch-delete`, { ids: confirmDeleteSelected })
+      await api.post(`/api/projects/${id}/media/batch-delete`, { paths: confirmDeleteSelected })
       setConfirmDeleteSelected(null)
       setSelectedFiles([])
       loadProject()
@@ -552,9 +552,9 @@ return
     }
   }
 
-  const handleRename = async (mediaId: number, newName: string) => {
+  const handleRename = async (mediaPath: string, newName: string) => {
     try {
-      await api.patch(`/api/projects/${id}/media/${mediaId}`, { name: newName })
+      await api.patch(`/api/projects/${id}/media`, { path: mediaPath, name: newName })
       setRenamingFile(null)
       loadProject()
     } catch {
@@ -712,27 +712,27 @@ return <FileText className="h-4 w-4 text-sky-400" />
                       <div className="space-y-1">
                         {media.slice((filePage - 1) * fileLimit, filePage * fileLimit).map((file) => (
                           <div
-                            key={file.id}
+                            key={file.path || file.id}
                             className={`flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-[var(--radius)] border border-[var(--color-border)] hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-surface-container-high)] transition-all duration-200 group ${
-                              selectedFiles.includes(file.id) ? 'border-[var(--color-primary)]/50 bg-[var(--color-primary-dim)]' : ''
+                              selectedFiles.includes(file.path) ? 'border-[var(--color-primary)]/50 bg-[var(--color-primary-dim)]' : ''
                             }`}
                           >
                             <input
                               type="checkbox"
-                              checked={selectedFiles.includes(file.id)}
+                              checked={selectedFiles.includes(file.path)}
                               onChange={() => {
                                 setSelectedFiles(prev =>
-                                  prev.includes(file.id) ? prev.filter(f => f !== file.id) : [...prev, file.id]
+                                  prev.includes(file.path) ? prev.filter(f => f !== file.path) : [...prev, file.path]
                                 )
                               }}
                               className="rounded border-[var(--color-outline-variant)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] bg-transparent"
                             />
                             {getFileIcon(file.mime_type)}
                             <div className="flex-1 min-w-0">
-                              {renamingFile?.id === file.id ? (
+                              {renamingFile?.id === file.path ? (
                                 <form
                                   onSubmit={(e) => {
- e.preventDefault(); handleRename(file.id, renamingFile.name) 
+ e.preventDefault(); handleRename(file.path, renamingFile.name) 
 }}
                                   className="flex items-center gap-1"
                                 >
@@ -755,14 +755,14 @@ return <FileText className="h-4 w-4 text-sky-400" />
                             </div>
                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity max-sm:opacity-100">
                               <button
-                                onClick={() => setRenamingFile({ id: file.id, name: file.name })}
+                                onClick={() => setRenamingFile({ id: file.path, name: file.name })}
                                 className="p-1.5 text-[var(--color-outline)] hover:text-[var(--color-on-surface)] transition-colors"
                                 title="Rename"
                               >
                                 <Pencil className="h-3.5 w-3.5" />
                               </button>
                               <a
-                                href={file.url}
+                                href={file.url || `/api/projects/${id}/media/raw?path=${encodeURIComponent(file.path)}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="p-1.5 text-[var(--color-outline)] hover:text-[var(--color-primary)] transition-colors"
@@ -771,7 +771,7 @@ return <FileText className="h-4 w-4 text-sky-400" />
                                 <ExternalLink className="h-3.5 w-3.5" />
                               </a>
                               <button
-                                onClick={() => setConfirmDeleteFile(file.id)}
+                                onClick={() => setConfirmDeleteFile(file.path)}
                                 className="p-1.5 text-[var(--color-outline)] hover:text-[var(--color-danger)] transition-colors"
                                 title="Delete"
                               >

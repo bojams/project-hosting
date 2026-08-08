@@ -17,10 +17,11 @@ Route::prefix('api')->middleware(['auth', 'throttle:60,1'])->group(function () {
     Route::post('/projects/{project}/media/bulk', [MediaController::class, 'uploadBulk']);
     Route::delete('/projects/{project}/media/all', [MediaController::class, 'destroyAll']);
     Route::post('/projects/{project}/media/batch-delete', [MediaController::class, 'destroyBatch']);
-    Route::delete('/projects/{project}/media/{media}', [MediaController::class, 'destroy']);
-    Route::patch('/projects/{project}/media/{media}', [MediaController::class, 'rename']);
-    Route::get('/projects/{project}/media/{media}/content', [MediaController::class, 'content']);
-    Route::put('/projects/{project}/media/{media}/content', [MediaController::class, 'updateContent']);
+    Route::delete('/projects/{project}/media', [MediaController::class, 'destroy']);
+    Route::patch('/projects/{project}/media', [MediaController::class, 'rename']);
+    Route::get('/projects/{project}/media/content', [MediaController::class, 'content']);
+    Route::put('/projects/{project}/media/content', [MediaController::class, 'updateContent']);
+    Route::get('/projects/{project}/media/raw', [MediaController::class, 'serve']);
 
     Route::post('/projects/{project}/media/chunk', [ChunkedUploadController::class, 'uploadChunk']);
     Route::post('/projects/{project}/media/chunk/complete', [ChunkedUploadController::class, 'complete']);

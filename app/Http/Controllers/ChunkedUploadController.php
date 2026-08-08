@@ -4,13 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Project;
 use App\Services\ArchiveService;
+use App\Services\ProjectFileService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class ChunkedUploadController extends Controller
 {
-    private const ALLOWED_MIMES = 'mimes:jpg,jpeg,png,gif,webp,svg,pdf,zip,tar,gz,mp4,webm,txt,md';
+    private const ALLOWED_MIMES = 'mimes:jpg,jpeg,png,gif,webp,svg,pdf,zip,tar,gz,mp4,webm,txt,md,php,phtml,json,css,js';
 
     private const BLOCKED_EXTENSIONS = ['php', 'exe', 'dll', 'sh', 'bat', 'ps1', 'jar'];
 
@@ -149,38 +150,36 @@ class ChunkedUploadController extends Controller
             ], 422);
         }
 
-        try {
-            $media = $project->addMedia($tempPath)
-                ->usingName(pathinfo($originalName, PATHINFO_FILENAME))
-                ->usingFileName($originalName)
-                ->withCustomProperties(['path' => $relativePath])
-                ->toMediaCollection('project_files');
+        $service = app(ProjectFileService::class);
+        $dest = $service->resolve($project, $relativePath);
+        if ($dest === false) {
+            @unlink($tempPath);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'File uploaded successfully',
-                'data' => [
-                    'id' => $media->id,
-                    'name' => $media->name,
-                    'file_name' => $media->file_name,
-                    'path' => $relativePath,
-                    'mime_type' => $media->mime_type,
-                    'size' => $media->size,
-                    'human_size' => $this->humanFileSize($media->size),
-                    'url' => $media->getUrl(),
-                    'created_at' => $media->created_at,
-                ],
-            ], 201);
-        } catch (\Throwable $e) {
-            if (file_exists($tempPath)) {
-                unlink($tempPath);
-            }
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to process file: '.$e->getMessage(),
-            ], 500);
+            return response()->json(['success' => false, 'message' => 'Invalid path'], 422);
         }
+
+        if (! is_dir(dirname($dest))) {
+            mkdir(dirname($dest), 0755, true);
+        }
+
+        copy($tempPath, $dest);
+        unlink($tempPath);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'File uploaded successfully',
+            'data' => [
+                'id' => null,
+                'name' => pathinfo($dest, PATHINFO_FILENAME),
+                'file_name' => basename($dest),
+                'path' => $relativePath,
+                'mime_type' => $service->mimeType($dest),
+                'size' => (int) filesize($dest),
+                'human_size' => $service->humanFileSize((int) filesize($dest)),
+                'url' => null,
+                'created_at' => null,
+            ],
+        ], 201);
     }
 
     public function cancel(Request $request, Project $project): JsonResponse

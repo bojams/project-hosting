@@ -4,15 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\Project;
 use App\Services\ArchiveService;
+use App\Services\DockerDeployer;
+use App\Services\ProjectFileService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class MediaController extends Controller
 {
-    private const ALLOWED_MIMES = 'mimes:jpg,jpeg,png,gif,webp,svg,pdf,zip,tar,gz,mp4,webm,txt,md';
+    private const ALLOWED_MIMES = 'mimes:jpg,jpeg,png,gif,webp,svg,pdf,zip,tar,gz,mp4,webm,txt,md,php,phtml,json,css,js';
 
-    private const BLOCKED_EXTENSIONS = ['php', 'exe', 'dll', 'sh', 'bat', 'ps1', 'jar'];
+    private const BLOCKED_EXTENSIONS = ['exe', 'dll', 'sh', 'bat', 'ps1', 'jar'];
 
     private const SAFE_PATH_REGEX = '/^(?!.*\.\.)[a-zA-Z0-9_\/\-\.\(\) ]+$/';
 
@@ -22,23 +24,29 @@ class MediaController extends Controller
             abort(404);
         }
 
-        $media = $project->getMedia('project_files');
+        app(DockerDeployer::class)->syncMediaToSource($project, $project->sourcePath());
+
+        $service = app(ProjectFileService::class);
+        $mediaByPath = $project->getMedia('project_files')
+            ->mapWithKeys(fn ($m) => [$m->getCustomProperty('path', $m->file_name) => $m]);
+
+        $files = $service->list($project, function (array $row) use ($mediaByPath) {
+            $media = $mediaByPath->get($row['path']);
+            if ($media) {
+                $row['id'] = $media->id;
+                $row['url'] = $media->getUrl();
+                $row['created_at'] = $media->created_at;
+                $row['updated_at'] = $media->updated_at;
+            }
+
+            return $row;
+        });
+
+        usort($files, fn ($a, $b) => strcmp($a['path'], $b['path']));
 
         return response()->json([
             'success' => true,
-            'data' => $media->map(fn (Media $m) => [
-                'id' => $m->id,
-                'name' => $m->name,
-                'file_name' => $m->file_name,
-                'path' => $m->getCustomProperty('path', $m->file_name),
-                'mime_type' => $m->mime_type,
-                'size' => $m->size,
-                'human_size' => $this->humanFileSize($m->size),
-                'url' => $m->getUrl(),
-                'thumbnail' => str_starts_with($m->mime_type, 'image/') ? $m->getUrl('thumb') : null,
-                'created_at' => $m->created_at,
-                'updated_at' => $m->updated_at,
-            ]),
+            'data' => array_values($files),
         ]);
     }
 
@@ -78,31 +86,31 @@ class MediaController extends Controller
             ], 422);
         }
 
-        try {
-            $media = $project->addMedia($file)
-                ->withCustomProperties(['path' => $relativePath])
-                ->toMediaCollection('project_files');
-        } catch (\Throwable $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 422);
+        $service = app(ProjectFileService::class);
+        $dest = $service->resolve($project, $relativePath);
+        if ($dest === false) {
+            return response()->json(['success' => false, 'message' => 'Invalid path'], 422);
         }
+
+        if (! is_dir(dirname($dest))) {
+            mkdir(dirname($dest), 0755, true);
+        }
+
+        $file->move(dirname($dest), basename($dest));
 
         return response()->json([
             'success' => true,
             'message' => 'File uploaded successfully',
             'data' => [
-                'id' => $media->id,
-                'name' => $media->name,
-                'file_name' => $media->file_name,
+                'id' => null,
+                'name' => pathinfo($dest, PATHINFO_FILENAME),
+                'file_name' => basename($dest),
                 'path' => $relativePath,
-                'mime_type' => $media->mime_type,
-                'size' => $media->size,
-                'human_size' => $this->humanFileSize($media->size),
-                'url' => $media->getUrl(),
-                'thumbnail' => str_starts_with($media->mime_type, 'image/') ? $media->getUrl('thumb') : null,
-                'created_at' => $media->created_at,
+                'mime_type' => $service->mimeType($dest),
+                'size' => (int) filesize($dest),
+                'human_size' => $service->humanFileSize((int) filesize($dest)),
+                'url' => null,
+                'created_at' => null,
             ],
         ], 201);
     }
@@ -121,11 +129,10 @@ class MediaController extends Controller
         ]);
 
         $uploaded = [];
-        $files = $request->file('files');
-        $paths = $request->input('paths', []);
+        $service = app(ProjectFileService::class);
 
-        foreach ($files as $i => $file) {
-            $relativePath = $paths[$i] ?? $file->getClientOriginalName();
+        foreach ($request->file('files') as $i => $file) {
+            $relativePath = $request->input('paths')[$i] ?? $file->getClientOriginalName();
             $ext = strtolower($file->getClientOriginalExtension());
 
             if (in_array($ext, self::BLOCKED_EXTENSIONS)) {
@@ -141,28 +148,27 @@ class MediaController extends Controller
                 continue;
             }
 
-            try {
-                $media = $project->addMedia($file)
-                    ->withCustomProperties(['path' => $relativePath])
-                    ->toMediaCollection('project_files');
-            } catch (\Throwable $e) {
-                return response()->json([
-                    'success' => false,
-                    'message' => $e->getMessage(),
-                ], 422);
+            $dest = $service->resolve($project, $relativePath);
+            if ($dest === false) {
+                continue;
             }
 
+            if (! is_dir(dirname($dest))) {
+                mkdir(dirname($dest), 0755, true);
+            }
+
+            $file->move(dirname($dest), basename($dest));
+
             $uploaded[] = [
-                'id' => $media->id,
-                'name' => $media->name,
-                'file_name' => $media->file_name,
+                'id' => null,
+                'name' => pathinfo($dest, PATHINFO_FILENAME),
+                'file_name' => basename($dest),
                 'path' => $relativePath,
-                'mime_type' => $media->mime_type,
-                'size' => $media->size,
-                'human_size' => $this->humanFileSize($media->size),
-                'url' => $media->getUrl(),
-                'thumbnail' => str_starts_with($media->mime_type, 'image/') ? $media->getUrl('thumb') : null,
-                'created_at' => $media->created_at,
+                'mime_type' => $service->mimeType($dest),
+                'size' => (int) filesize($dest),
+                'human_size' => $service->humanFileSize((int) filesize($dest)),
+                'url' => null,
+                'created_at' => null,
             ];
         }
 
@@ -173,22 +179,24 @@ class MediaController extends Controller
         ], 201);
     }
 
-    public function destroy(Request $request, Project $project, Media $media): JsonResponse
+    public function destroy(Request $request, Project $project): JsonResponse
     {
         if ($project->user_id !== $request->user()->id) {
             abort(404);
         }
 
-        if ($media->model_id !== $project->id || $media->model_type !== Project::class) {
-            abort(404);
+        $validated = $request->validate([
+            'path' => 'required|string|max:500',
+        ]);
+
+        $service = app(ProjectFileService::class);
+        if (! $service->delete($project, $validated['path'])) {
+            return response()->json(['success' => false, 'message' => 'File not found'], 404);
         }
 
-        $media->delete();
+        $this->deleteMatchingMedia($project, $validated['path']);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'File deleted successfully',
-        ]);
+        return response()->json(['success' => true, 'message' => 'File deleted successfully']);
     }
 
     public function destroyBatch(Request $request, Project $project): JsonResponse
@@ -198,18 +206,18 @@ class MediaController extends Controller
         }
 
         $validated = $request->validate([
-            'ids' => 'required|array',
-            'ids.*' => 'required|integer',
+            'paths' => 'required|array',
+            'paths.*' => 'required|string|max:500',
         ]);
 
-        $media = Media::whereIn('id', $validated['ids'])
-            ->where('model_id', $project->id)
-            ->where('model_type', Project::class)
-            ->get();
+        $service = app(ProjectFileService::class);
+        $count = 0;
 
-        $count = $media->count();
-        foreach ($media as $m) {
-            $m->delete();
+        foreach ($validated['paths'] as $path) {
+            if ($service->delete($project, $path)) {
+                $count++;
+            }
+            $this->deleteMatchingMedia($project, $path);
         }
 
         return response()->json([
@@ -224,13 +232,11 @@ class MediaController extends Controller
             abort(404);
         }
 
-        $media = Media::where('model_id', $project->id)
-            ->where('model_type', Project::class)
-            ->get();
+        app(ProjectFileService::class)->deleteAll($project);
 
-        $count = $media->count();
-        foreach ($media as $m) {
-            $m->delete();
+        $count = $project->getMedia('project_files')->count();
+        foreach ($project->getMedia('project_files') as $media) {
+            $media->delete();
         }
 
         return response()->json([
@@ -239,96 +245,105 @@ class MediaController extends Controller
         ]);
     }
 
-    public function rename(Request $request, Project $project, Media $media): JsonResponse
+    public function rename(Request $request, Project $project): JsonResponse
     {
         if ($project->user_id !== $request->user()->id) {
             abort(404);
         }
 
-        if ($media->model_id !== $project->id || $media->model_type !== Project::class) {
-            abort(404);
-        }
-
         $validated = $request->validate([
+            'path' => 'required|string|max:500',
             'name' => 'required|string|max:255',
         ]);
 
-        $media->update(['name' => $validated['name']]);
+        $service = app(ProjectFileService::class);
+        if (! $service->rename($project, $validated['path'], $validated['name'])) {
+            return response()->json(['success' => false, 'message' => 'Rename failed'], 422);
+        }
+
+        $newPath = dirname($validated['path']).'/'.$validated['name'];
+        if (str_starts_with($newPath, './')) {
+            $newPath = ltrim($newPath, './');
+        }
+
+        $this->deleteMatchingMedia($project, $validated['path']);
+        $this->deleteMatchingMedia($project, $newPath);
 
         return response()->json([
             'success' => true,
             'message' => 'File renamed successfully',
-            'data' => $media,
         ]);
     }
 
-    public function content(Request $request, Project $project, Media $media): JsonResponse
+    public function content(Request $request, Project $project): JsonResponse
     {
         if ($project->user_id !== $request->user()->id) {
-            abort(404);
-        }
-
-        if ($media->model_id !== $project->id || $media->model_type !== Project::class) {
-            abort(404);
-        }
-
-        $textTypes = [
-            'text/', 'application/json', 'application/javascript', 'application/xml',
-            'application/x-httpd-php', 'application/x-sh', 'application/x-yaml',
-        ];
-        $isText = collect($textTypes)->contains(fn ($t) => str_starts_with($media->mime_type, $t));
-
-        $content = null;
-        if ($isText && $media->size < 1024 * 1024) {
-            $content = file_get_contents($media->getPath());
-        }
-
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'id' => $media->id,
-                'name' => $media->name,
-                'mime_type' => $media->mime_type,
-                'size' => $media->size,
-                'human_size' => $this->humanFileSize($media->size),
-                'url' => $media->getUrl(),
-                'is_text' => $isText,
-                'content' => $content,
-            ],
-        ]);
-    }
-
-    public function updateContent(Request $request, Project $project, Media $media): JsonResponse
-    {
-        if ($project->user_id !== $request->user()->id) {
-            abort(404);
-        }
-
-        if ($media->model_id !== $project->id || $media->model_type !== Project::class) {
             abort(404);
         }
 
         $validated = $request->validate([
+            'path' => 'required|string|max:500',
+        ]);
+
+        $data = app(ProjectFileService::class)->content($project, $validated['path']);
+        if ($data === null) {
+            return response()->json(['success' => false, 'message' => 'File not found'], 404);
+        }
+
+        return response()->json(['success' => true, 'data' => $data]);
+    }
+
+    public function updateContent(Request $request, Project $project): JsonResponse
+    {
+        if ($project->user_id !== $request->user()->id) {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'path' => 'required|string|max:500',
             'content' => 'required|string',
         ]);
 
-        file_put_contents($media->getPath(), $validated['content']);
+        if (! app(ProjectFileService::class)->updateContent($project, $validated['path'], $validated['content'])) {
+            return response()->json(['success' => false, 'message' => 'File not found'], 404);
+        }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'File updated',
+        return response()->json(['success' => true, 'message' => 'File updated']);
+    }
+
+    public function serve(Request $request, Project $project): StreamedResponse
+    {
+        if ($project->user_id !== $request->user()->id) {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'path' => 'required|string|max:500',
         ]);
+
+        $dest = app(ProjectFileService::class)->resolve($project, $validated['path']);
+        if ($dest === false || ! is_file($dest)) {
+            abort(404);
+        }
+
+        $mime = app(ProjectFileService::class)->mimeType($dest);
+
+        return response()->streamDownload(function () use ($dest) {
+            readfile($dest);
+        }, basename($dest), ['Content-Type' => $mime]);
+    }
+
+    private function deleteMatchingMedia(Project $project, string $path): void
+    {
+        foreach ($project->getMedia('project_files') as $media) {
+            if ($media->getCustomProperty('path', $media->file_name) === $path) {
+                $media->delete();
+            }
+        }
     }
 
     private function humanFileSize(int $bytes): string
     {
-        $units = ['B', 'KB', 'MB', 'GB'];
-        $i = 0;
-        while ($bytes >= 1024 && $i < count($units) - 1) {
-            $bytes /= 1024;
-            $i++;
-        }
-
-        return round($bytes, 2).' '.$units[$i];
+        return app(ProjectFileService::class)->humanFileSize($bytes);
     }
 }

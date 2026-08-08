@@ -36,19 +36,19 @@ export interface Project {
 }
 
 export interface MediaFile {
-    id: number;
+    id: number | null;
     name: string;
     file_name: string;
     path: string;
     mime_type: string;
     size: number;
     human_size: string;
-    url: string;
+    url: string | null;
     thumbnail: string | null;
     is_text?: boolean;
     content?: string;
-    created_at: string;
-    updated_at: string;
+    created_at: string | null;
+    updated_at: string | null;
 }
 
 export interface Deployment {
