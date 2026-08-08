@@ -124,7 +124,7 @@ export default function Welcome() {
 
   return (
     <>
-      <Head title="Hideo Hosting" />
+      <Head title="" />
       <div className="min-h-screen bg-[var(--color-bg-base)] overflow-y-auto">
         {/* Header */}
         <header className="border-b border-[rgba(255,255,255,0.06)]">
@@ -132,7 +132,7 @@ export default function Welcome() {
             <div className="flex items-center justify-between h-14 sm:h-16">
               <div className="flex items-center shrink-0">
                 <Link href="/" className="block">
-                  <BrandLogo className="h-12 sm:h-14 w-auto" />
+                  <BrandLogo className="h-16 sm:h-20 w-auto" />
                 </Link>
               </div>
               <div className="flex items-center gap-1 sm:gap-2">

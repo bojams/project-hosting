@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-export default function BrandLogo({ className = 'h-10 w-auto' }: { className?: string }) {
+export default function BrandLogo({ className = 'h-12 w-auto' }: { className?: string }) {
     const [error, setError] = useState(false)
 
     if (error) {
@@ -18,7 +18,7 @@ export default function BrandLogo({ className = 'h-10 w-auto' }: { className?: s
 
     return (
         <img
-            src="/icons1.png"
+            src="/logo.png?v=3"
             alt="Hideo Hosting"
             className={className}
             style={{ objectFit: 'contain' }}

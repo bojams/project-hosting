@@ -46,7 +46,7 @@ export function AppSidebar() {
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" className="group-data-[collapsible=icon]:!p-2" asChild>
                             <Link href="/" prefetch>
-                                <BrandLogo className="h-10 w-auto shrink-0" />
+                                <BrandLogo className="h-14 w-auto shrink-0" />
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>

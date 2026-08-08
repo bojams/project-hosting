@@ -9,9 +9,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('projects', function (Blueprint $table) {
-            $table->index('domain');
-            $table->index('custom_domain');
-            $table->index('slug');
+            if (! Schema::hasIndex('projects', 'projects_domain_index')) {
+                $table->index('domain');
+            }
+
+            if (! Schema::hasIndex('projects', 'projects_custom_domain_index')) {
+                $table->index('custom_domain');
+            }
+
+            if (! Schema::hasIndex('projects', 'projects_slug_index')) {
+                $table->index('slug');
+            }
         });
     }
 
