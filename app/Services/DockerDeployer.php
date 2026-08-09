@@ -340,7 +340,7 @@ PHP
                 return $this->nodeDockerfile($baseImage, $installCmd, $buildCmd, $startCmd, $outputDir, $port);
 
             case 'php':
-                return $this->phpDockerfile($baseImage, $installCmd, $startCmd, $outputDir, $port);
+                return $this->phpDockerfile($sourcePath, $baseImage, $installCmd, $startCmd, $outputDir, $port);
 
             case 'python':
                 return $this->pythonDockerfile($baseImage, $installCmd, $startCmd, $port);
@@ -383,7 +383,7 @@ PHP
         return $df;
     }
 
-    private function phpDockerfile(string $base, ?string $install, ?string $start, ?string $output, int $port): string
+    private function phpDockerfile(string $sourcePath, string $base, ?string $install, ?string $start, ?string $output, int $port): string
     {
         $df = "FROM {$base}\n";
         $df .= "RUN apt-get update && apt-get install -y --no-install-recommends \\\n";
@@ -398,14 +398,24 @@ PHP
             $df .= "RUN {$install}\n";
         }
 
-        if ($start) {
-            $start = str_replace('{port}', (string) $port, $start);
-            $df .= 'CMD '.json_encode(['sh', '-c', $start])."\n";
-        }
+        $start = $this->phpStartCommand($sourcePath, $start, $port);
+
+        $df .= 'CMD '.json_encode(['sh', '-c', $start])."\n";
 
         $df .= "EXPOSE {$port}\n";
 
         return $df;
+    }
+
+    private function phpStartCommand(string $sourcePath, ?string $start, int $port): string
+    {
+        if ($start) {
+            return str_replace('{port}', (string) $port, $start);
+        }
+
+        $serveRoot = is_dir($sourcePath.'/public') ? '-t public' : '';
+
+        return "php -S 0.0.0.0:{$port} {$serveRoot}";
     }
 
     private function pythonDockerfile(string $base, ?string $install, ?string $start, int $port): string
@@ -418,9 +428,7 @@ PHP
 
         $df .= "COPY . .\n";
         $df .= "EXPOSE {$port}\n";
-        if ($start) {
-            $df .= 'CMD '.json_encode(['sh', '-c', $start])."\n";
-        }
+        $df .= 'CMD '.json_encode(['sh', '-c', $start ?? "python -m http.server {$port}"])."\n";
 
         return $df;
     }
@@ -435,9 +443,7 @@ PHP
         }
 
         $df .= "EXPOSE {$port}\n";
-        if ($start) {
-            $df .= 'CMD '.json_encode(['sh', '-c', $start])."\n";
-        }
+        $df .= 'CMD '.json_encode(['sh', '-c', $start ?? 'ruby app.rb'])."\n";
 
         return $df;
     }
